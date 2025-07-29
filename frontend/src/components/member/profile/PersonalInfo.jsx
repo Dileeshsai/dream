@@ -1,0 +1,437 @@
+
+import React, { useState } from 'react';
+import { Upload, Camera, MapPin, Calendar, User, Phone, Mail, Edit, Save, X, Trash2 } from 'lucide-react';
+
+const PersonalInfo = ({ data, onUpdate, onSave }) => {
+  // Add default values to prevent null errors
+  const defaultData = {
+    profileImage: '',
+    name: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    address: {
+      village: '',
+      mandal: '',
+      district: '',
+      pin: ''
+    },
+    community: {
+      caste: '',
+      subcaste: '',
+      nativePlace: ''
+    },
+    maritalStatus: ''
+  };
+
+  const [formData, setFormData] = useState(data || defaultData);
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  // Update formData when data prop changes
+  React.useEffect(() => {
+    console.log('PersonalInfo: data prop changed:', data);
+    if (data) {
+      setFormData(data);
+      setOriginalData(data);
+    }
+  }, [data]);
+
+  // Monitor isEditing state changes
+  React.useEffect(() => {
+    console.log('PersonalInfo: isEditing state changed to:', isEditing);
+  }, [isEditing]);
+
+  // Monitor formData changes
+  React.useEffect(() => {
+    console.log('PersonalInfo: formData changed to:', formData);
+  }, [formData]);
+
+  const handleChange = (field, value) => {
+    console.log('handleChange called with field:', field, 'value:', value);
+    console.log('Current formData:', formData);
+    
+    let updatedData = { ...formData };
+    
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      updatedData = {
+        ...formData,
+        [parent]: {
+          ...(formData?.[parent] || {}),
+          [child]: value
+        }
+      };
+    } else {
+      updatedData[field] = value;
+    }
+    
+    console.log('Updated formData:', updatedData);
+    setFormData(updatedData);
+    
+    // Don't call onUpdate during typing - only when saving
+    // This prevents the parent component from interfering with local state
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        handleChange('profileImage', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEdit = () => {
+    console.log('PersonalInfo handleEdit called');
+    console.log('Current isEditing state:', isEditing);
+    setIsEditing(true);
+    setOriginalData(formData);
+    console.log('Set isEditing to true');
+  };
+
+  const handleSave = async () => {
+    console.log('PersonalInfo handleSave called');
+    console.log('onSave function exists:', !!onSave);
+    console.log('formData to save:', formData);
+    
+    if (!onSave) {
+      console.log('No onSave function provided');
+      setIsEditing(false);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      console.log('Calling onSave with formData:', formData);
+      await onSave(formData);
+      console.log('onSave completed successfully');
+      
+      // Update parent component with the saved data
+      if (onUpdate) {
+        onUpdate(formData);
+      }
+      
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving personal info:', error);
+      alert('Failed to save personal information. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData(originalData);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete your personal information? This action cannot be undone.')) {
+      const emptyData = { ...defaultData };
+      setFormData(emptyData);
+      if (onUpdate) {
+        onUpdate(emptyData);
+      }
+      if (onSave) {
+        onSave(emptyData);
+      }
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <div className="p-6">
+      {console.log('PersonalInfo render - isEditing:', isEditing, 'formData:', formData)}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
+        {!isEditing && (
+          <div className="text-sm text-gray-500 bg-blue-50 px-3 py-1 rounded-lg">
+            Click "Edit" to modify your information
+          </div>
+        )}
+      </div>
+      
+      {/* Profile Image */}
+      <div className="mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-3">Profile Photo</label>
+        <div className="flex items-center space-x-6">
+          <div className="relative">
+            <img
+              src={formData?.profileImage || '/placeholder.svg'}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+              <Camera className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div>
+            <input
+              type="file"
+              id="profile-upload"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              disabled={!isEditing}
+            />
+            <label
+              htmlFor="profile-upload"
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                isEditing 
+                  ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700' 
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload Photo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Basic Information */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <User className="w-4 h-4 inline mr-2" />
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={formData?.name || ''}
+              onChange={(e) => handleChange('name', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
+              placeholder="Enter your full name"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Mail className="w-4 h-4 inline mr-2" />
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={formData?.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter your email"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Phone className="w-4 h-4 inline mr-2" />
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={formData?.phone || ''}
+              onChange={(e) => handleChange('phone', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="+91 9876543210"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Calendar className="w-4 h-4 inline mr-2" />
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              value={formData?.dateOfBirth || ''}
+              onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+            <select
+              value={formData?.gender || ''}
+              onChange={(e) => handleChange('gender', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!isEditing}
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Address Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <MapPin className="w-5 h-5 mr-2" />
+            Address Details
+          </h3>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Village/Town</label>
+            <input
+              type="text"
+              value={formData?.address?.village || ''}
+              onChange={(e) => handleChange('address.village', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter village/town"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Mandal</label>
+            <input
+              type="text"
+              value={formData?.address?.mandal || ''}
+              onChange={(e) => handleChange('address.mandal', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter mandal"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
+            <input
+              type="text"
+              value={formData?.address?.district || ''}
+              onChange={(e) => handleChange('address.district', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter district"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">PIN Code</label>
+            <input
+              type="text"
+              value={formData?.address?.pin || ''}
+              onChange={(e) => handleChange('address.pin', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter PIN code"
+              disabled={!isEditing}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Community Details */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Caste</label>
+            <select
+              value={formData?.community?.caste || ''}
+              onChange={(e) => handleChange('community.caste', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!isEditing}
+            >
+              <option value="">Select Caste</option>
+              <option value="general">General</option>
+              <option value="obc">OBC</option>
+              <option value="sc">SC</option>
+              <option value="st">ST</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Subcaste</label>
+            <input
+              type="text"
+              value={formData?.community?.subcaste || ''}
+              onChange={(e) => handleChange('community.subcaste', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter subcaste (optional)"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Native Place</label>
+            <input
+              type="text"
+              value={formData?.community?.nativePlace || ''}
+              onChange={(e) => handleChange('community.nativePlace', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Enter native place"
+              disabled={!isEditing}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Marital Status */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Marital Status</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
+            <select
+              value={formData?.maritalStatus || ''}
+              onChange={(e) => handleChange('maritalStatus', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!isEditing}
+            >
+              <option value="">Select Status</option>
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+              <option value="divorced">Divorced</option>
+              <option value="widowed">Widowed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit/Save/Cancel/Delete Buttons */}
+      <div className="mt-8 flex justify-end space-x-4">
+        {isEditing ? (
+          <>
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : <><Save className="w-5 h-5 mr-2" /> Save</>}
+            </button>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+            >
+              <X className="w-5 h-5 mr-2" /> Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 className="w-5 h-5 mr-2" /> Delete
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={handleEdit}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+          >
+            <Edit className="w-5 h-5 mr-2" /> Edit Information
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PersonalInfo;
