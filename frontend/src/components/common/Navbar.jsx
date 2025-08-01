@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProfilePhoto } from '../../hooks/useProfilePhoto';
+import ProfilePhoto from './ProfilePhoto';
 import { 
   Bell, 
   Search, 
@@ -19,6 +21,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { photoUrl, loading } = useProfilePhoto();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -88,10 +91,11 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <img
-                  src={user?.profileImage}
-                  alt="Profile"
-                  className="h-8 w-8 rounded-full"
+                <ProfilePhoto
+                  photoUrl={photoUrl}
+                  size="sm"
+                  loading={loading}
+                  alt={user?.name || 'Profile'}
                 />
                 <span className="hidden sm:block text-sm font-medium text-gray-700">
                   {user?.name}

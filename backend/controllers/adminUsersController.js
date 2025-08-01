@@ -377,6 +377,20 @@ exports.createFullUser = async (req, res, next) => {
   try {
     const { user, profile, education, employment, family } = req.body;
 
+    // Check if user already exists (email or phone)
+    const existing = await User.findOne({
+      where: { [Op.or]: [{ email: user.email }, { phone: user.phone }] },
+      transaction: t
+    });
+    if (existing) {
+      await t.rollback();
+      if (existing.email === user.email) {
+        return res.status(400).json({ error: 'Email already registered' });
+      } else {
+        return res.status(400).json({ error: 'Phone number already registered' });
+      }
+    }
+
     // Hash the password
     const password_hash = await bcrypt.hash(user.password, 10);
 
@@ -388,9 +402,36 @@ exports.createFullUser = async (req, res, next) => {
       is_verified: true
     }, { transaction: t });
 
-    // 2. Create profile
-    if (profile) {
-      await Profile.create({ ...profile, user_id: newUser.id }, { transaction: t });
+    // 2. Create profile (only for member users, or with proper validation for admin users)
+    if (profile && (newUser.role === 'member' || Object.values(profile).some(val => val && val !== ''))) {
+      // Handle date of birth validation
+      const profileData = { ...profile, user_id: newUser.id };
+      
+      // Validate and format date of birth
+      if (profileData.dob) {
+        const dobDate = new Date(profileData.dob);
+        if (isNaN(dobDate.getTime())) {
+          // Invalid date, set to null
+          profileData.dob = null;
+        } else {
+          // Valid date, format it properly
+          profileData.dob = dobDate.toISOString().split('T')[0];
+        }
+      } else {
+        // No date provided, set to null
+        profileData.dob = null;
+      }
+      
+      // Validate gender field - only create profile if gender is valid or empty
+      if (profileData.gender && !['male', 'female', 'other'].includes(profileData.gender)) {
+        // Invalid gender value, set to null
+        profileData.gender = null;
+      }
+      
+      // Only create profile if there's meaningful data or user is a member
+      if (newUser.role === 'member' || Object.values(profileData).some(val => val && val !== '' && val !== null)) {
+        await Profile.create(profileData, { transaction: t });
+      }
     }
 
     // 3. Create education records

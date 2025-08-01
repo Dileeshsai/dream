@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft, Loader } from 'lucide-react';
+import Captcha from '../common/Captcha';
+import { apiPost } from '../../services/apiService';
 
 const RegisterScreen = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,8 @@ const RegisterScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [captchaValid, setCaptchaValid] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const { register, loading, pendingRegistration } = useAuth();
   const navigate = useNavigate();
 
@@ -24,6 +28,25 @@ const RegisterScreen = () => {
       navigate('/verify-otp');
     }
   }, [pendingRegistration, navigate]);
+
+  // Debounced email check
+  useEffect(() => {
+    const checkEmail = async () => {
+      if (formData.email && /\S+@\S+\.\S+/.test(formData.email)) {
+        setIsCheckingEmail(true);
+        try {
+          // This would be a backend endpoint to check if email exists
+          // For now, we'll rely on the registration error handling
+          setIsCheckingEmail(false);
+        } catch (error) {
+          setIsCheckingEmail(false);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(checkEmail, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.email]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -48,10 +71,16 @@ const RegisterScreen = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password should be at least 8 characters for better security';
     }
     
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!captchaValid) {
+      newErrors.captcha = 'Please complete the security verification';
     }
     
     setErrors(newErrors);
@@ -90,8 +119,61 @@ const RegisterScreen = () => {
           response: error.response?.data,
           status: error.response?.status
         });
-        // Handle registration error - you might want to show an error message to the user
-        setErrors({ submit: error.message || 'Registration failed. Please try again.' });
+        
+        let errorMessage = 'Registration failed. Please try again.';
+        
+        // Handle different types of errors
+        if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.response) {
+          // Server responded with error status
+          const status = error.response.status;
+          const errorData = error.response.data;
+          
+          if (status === 404) {
+            errorMessage = 'Server not found. Please try again later.';
+          } else if (status === 500) {
+            errorMessage = 'Server error. Please try again later.';
+          } else if (status === 503) {
+            errorMessage = 'Service temporarily unavailable. Please try again later.';
+          } else if (status === 400) {
+            // Check for specific validation errors from backend
+            if (errorData && errorData.error) {
+              if (errorData.error.includes('already registered') || errorData.error.includes('already exists')) {
+                errorMessage = 'User already exists. Please use a different email or phone number.';
+              } else if (errorData.error.includes('All fields are required')) {
+                errorMessage = 'Please fill in all required fields.';
+              } else if (errorData.error.includes('Email or phone already registered')) {
+                errorMessage = 'Email or phone number already registered. Please use different credentials.';
+              } else {
+                errorMessage = errorData.error;
+              }
+            } else {
+              errorMessage = 'Invalid request. Please check your information.';
+            }
+          } else if (status >= 400 && status < 500) {
+            errorMessage = 'Invalid request. Please check your information.';
+          } else if (status >= 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+        } else if (error.request) {
+          // Request was made but no response received
+          errorMessage = 'No response from server. Please check your connection and try again.';
+        } else if (error.message) {
+          // Other error with message
+          if (error.message.includes('timeout')) {
+            errorMessage = 'Request timeout. Please try again.';
+          } else if (error.message.includes('canceled')) {
+            errorMessage = 'Request was canceled. Please try again.';
+          } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
+            errorMessage = 'User already exists. Please use a different email or phone number.';
+          } else {
+            // Use the actual error message if it's meaningful
+            errorMessage = error.message;
+          }
+        }
+        
+        setErrors({ submit: errorMessage });
       }
     }
   };
@@ -102,11 +184,18 @@ const RegisterScreen = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+    // Clear field error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+    // Clear submit error when user starts typing
+    if (errors.submit) {
+      setErrors(prev => ({
+        ...prev,
+        submit: ''
       }));
     }
   };
@@ -278,6 +367,12 @@ const RegisterScreen = () => {
               </div>
             </div>
 
+            {/* Captcha Field */}
+            <Captcha onValidationChange={setCaptchaValid} />
+            {errors.captcha && (
+              <p className="mt-1 text-sm text-red-600">{errors.captcha}</p>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -293,7 +388,14 @@ const RegisterScreen = () => {
             
             {/* Submit Error */}
             {errors.submit && (
-              <div className="text-red-600 text-center text-sm">{errors.submit}</div>
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center shadow-sm">
+                <div className="flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.submit}
+                </div>
+              </div>
             )}
           </form>
 

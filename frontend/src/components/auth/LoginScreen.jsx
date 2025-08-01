@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader } from 'lucide-react';
+import Captcha from '../common/Captcha';
 
 const LoginScreen = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const LoginScreen = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [captchaValid, setCaptchaValid] = useState(false);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -25,8 +27,10 @@ const LoginScreen = () => {
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (!captchaValid) {
+      newErrors.captcha = 'Please complete the security verification';
     }
     
     setErrors(newErrors);
@@ -44,7 +48,7 @@ const LoginScreen = () => {
           navigate('/dashboard');
         }
       } catch (error) {
-        let errorMessage = 'Invalid email or password. Please try again.';
+        let errorMessage = 'Invalid credentials. Please try again.';
         
         // Handle different types of errors
         if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
@@ -52,6 +56,8 @@ const LoginScreen = () => {
         } else if (error.response) {
           // Server responded with error status
           const status = error.response.status;
+          const errorData = error.response.data;
+          
           if (status === 404) {
             errorMessage = 'Server not found. Please try again later.';
           } else if (status === 500) {
@@ -59,9 +65,24 @@ const LoginScreen = () => {
           } else if (status === 503) {
             errorMessage = 'Service temporarily unavailable. Please try again later.';
           } else if (status === 401) {
-            errorMessage = 'Invalid email or password. Please try again.';
+            errorMessage = 'Invalid credentials. Please check your email and password.';
           } else if (status === 403) {
             errorMessage = 'Access denied. Please contact support.';
+          } else if (status === 400) {
+            // Check for specific validation errors from backend
+            if (errorData && errorData.error) {
+              if (errorData.error.includes('User not found')) {
+                errorMessage = 'Invalid credentials. Please check your email and password.';
+              } else if (errorData.error.includes('Invalid credentials')) {
+                errorMessage = 'Invalid credentials. Please check your email and password.';
+              } else if (errorData.error.includes('User not verified')) {
+                errorMessage = 'Account not verified. Please check your email for verification link.';
+              } else {
+                errorMessage = errorData.error;
+              }
+            } else {
+              errorMessage = 'Invalid request. Please check your credentials.';
+            }
           } else if (status >= 400 && status < 500) {
             errorMessage = 'Invalid request. Please check your credentials.';
           } else if (status >= 500) {
@@ -76,6 +97,8 @@ const LoginScreen = () => {
             errorMessage = 'Request timeout. Please try again.';
           } else if (error.message.includes('canceled')) {
             errorMessage = 'Request was canceled. Please try again.';
+          } else if (error.message.includes('Invalid email or password')) {
+            errorMessage = 'Invalid credentials. Please check your email and password.';
           } else {
             // Use the actual error message if it's meaningful
             errorMessage = error.message;
@@ -93,11 +116,18 @@ const LoginScreen = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+    // Clear field error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+    // Clear form error when user starts typing
+    if (errors.form) {
+      setErrors(prev => ({
+        ...prev,
+        form: ''
       }));
     }
   };
@@ -183,10 +213,21 @@ const LoginScreen = () => {
               </div>
             </div>
 
+            {/* Captcha Field */}
+            <Captcha onValidationChange={setCaptchaValid} />
+            {errors.captcha && (
+              <p className="mt-1 text-sm text-red-600">{errors.captcha}</p>
+            )}
+
             {/* Form Error */}
             {errors.form && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
-                {errors.form}
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center shadow-sm">
+                <div className="flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.form}
+                </div>
               </div>
             )}
 
@@ -206,9 +247,6 @@ const LoginScreen = () => {
 
           {/* Links */}
           <div className="mt-6 text-center space-y-4">
-            <a href="#" className="text-blue-600 hover:text-blue-700 text-sm">
-              Forgot your password?
-            </a>
             
             <div className="text-gray-600">
               Don't have an account?{' '}

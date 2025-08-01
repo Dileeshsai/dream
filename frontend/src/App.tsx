@@ -27,8 +27,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUserManagement from "./components/admin/AdminUserManagement";
 import AdminJobManagement from "./components/admin/AdminJobManagement";
 import AdminBulkUpload from "./components/admin/AdminBulkUpload";
-import AdminReports from "./components/admin/AdminReports";
-import AdminSettings from "./components/admin/AdminSettings";
+
 import About from './components/welcome/About';
 import Society from './components/welcome/Society';
 import Contact from './components/welcome/Contact';
@@ -71,8 +70,7 @@ const App = () => (
               <Route path="users" element={<AdminUserManagement />} />
               <Route path="jobs" element={<AdminJobManagement />} />
               <Route path="bulk-upload" element={<AdminBulkUpload />} />
-              <Route path="reports" element={<AdminReports />} />
-              <Route path="settings" element={<AdminSettings />} />
+
             </Route>
             
             {/* Other routes that might need their own layout */}

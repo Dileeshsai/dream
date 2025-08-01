@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Upload, Camera, MapPin, Calendar, User, Phone, Mail, Edit, Save, X, Trash2 } from 'lucide-react';
+import { Upload, Camera, MapPin, Calendar, User, Phone, Mail, Edit, Save, X, Trash2, Loader2 } from 'lucide-react';
+import profilePhotoService from '../../../services/profilePhotoService';
 
 const PersonalInfo = ({ data, onUpdate, onSave }) => {
   // Add default values to prevent null errors
@@ -29,6 +30,9 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [photoError, setPhotoError] = useState('');
 
   // Update formData when data prop changes
   React.useEffect(() => {
@@ -75,14 +79,45 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
     // This prevents the parent component from interfering with local state
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        handleChange('profileImage', reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file
+    const validation = profilePhotoService.validateFile(file);
+    if (!validation.valid) {
+      setPhotoError(validation.message);
+      return;
+    }
+
+    setPhotoError('');
+    setUploadingPhoto(true);
+    setUploadProgress(0);
+
+    try {
+      // Show preview immediately
+      const previewUrl = await profilePhotoService.fileToBase64(file);
+      handleChange('profileImage', previewUrl);
+
+      // Upload to S3
+      const result = await profilePhotoService.uploadProfilePhoto(
+        file,
+        (progress) => setUploadProgress(progress)
+      );
+
+      if (result.success) {
+        // Update with the actual S3 URL
+        handleChange('profileImage', result.data.photoUrl);
+        setPhotoError('');
+      } else {
+        setPhotoError(result.message || 'Failed to upload photo');
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      setPhotoError('Failed to upload photo. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+      setUploadProgress(0);
     }
   };
 
@@ -166,30 +201,66 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
             />
+            {uploadingPhoto && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
+              </div>
+            )}
             <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
               <Camera className="w-6 h-6 text-white" />
             </div>
           </div>
-          <div>
+          <div className="flex-1">
             <input
               type="file"
               id="profile-upload"
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
-              disabled={!isEditing}
+              disabled={!isEditing || uploadingPhoto}
             />
             <label
               htmlFor="profile-upload"
               className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                isEditing 
+                isEditing && !uploadingPhoto
                   ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700' 
                   : 'bg-gray-400 text-gray-200 cursor-not-allowed'
               }`}
             >
-              <Upload className="w-4 h-4" />
-              <span>Upload Photo</span>
+              {uploadingPhoto ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Uploading... {uploadProgress}%</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Photo</span>
+                </>
+              )}
             </label>
+            
+            {/* Upload Progress Bar */}
+            {uploadingPhoto && (
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            )}
+            
+            {/* Error Message */}
+            {photoError && (
+              <div className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                {photoError}
+              </div>
+            )}
+            
+            {/* File Requirements */}
+            <div className="mt-2 text-xs text-gray-500">
+              Supported formats: JPEG, PNG, GIF, WebP (max 5MB)
+            </div>
           </div>
         </div>
       </div>

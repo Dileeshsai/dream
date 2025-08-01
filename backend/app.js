@@ -12,11 +12,15 @@ const adminProfilesRouter = require('./routes/adminProfiles');
 const adminEducationRouter = require('./routes/adminEducation');
 const adminEmploymentRouter = require('./routes/adminEmployment');
 const adminFamilyRouter = require('./routes/adminFamily');
+const adminDashboardRouter = require('./routes/adminDashboard');
+const memberDashboardRouter = require('./routes/memberDashboard');
 
 const app = express();
 
-app.use(cors(  {origin: 'http://localhost:8080', // your frontend URL
-  credentials: true}));
+app.use(cors({
+  origin: '*', // Allow all origins
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 
@@ -29,6 +33,8 @@ app.use('/auth', require('./routes/auth'));
 app.use('/users', require('./routes/users'));
 // Profile routes
 app.use('/profiles', require('./routes/profiles'));
+// Profile photo routes
+app.use('/profile-photo', require('./routes/profilePhoto'));
 // Family routes
 app.use('/family', require('./routes/family'));
 // Education routes
@@ -47,6 +53,8 @@ app.use('/admin', require('./routes/bulkUpload'));
 app.use('/bulkUpload', require('./routes/bulkUpload'));
 app.use('/admin', require('./routes/adminUsers'));
 app.use('/admin', require('./routes/adminExport'));
+app.use('/admin/dashboard', adminDashboardRouter);
+app.use('/member/dashboard', memberDashboardRouter);
 app.use('/admin/profiles', adminProfilesRouter);
 app.use('/admin/education', adminEducationRouter);
 app.use('/admin/employment', adminEmploymentRouter);
