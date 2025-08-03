@@ -471,7 +471,7 @@ const WelcomeScreen = () => {
                 </div>
               </div>
               <div className="flex justify-center mt-10">
-                <Button size="lg" className="bg-gradient-to-r from-sky-400 via-blue-400 to-sky-600 text-white shadow-xl px-8 py-4 text-lg font-semibold animate-gradient-x">Join Now</Button>
+              <Link to="/register"><Button size="lg" className="bg-gradient-to-r from-sky-400 via-blue-400 to-sky-600 text-white shadow-xl px-8 py-4 text-lg font-semibold animate-gradient-x">Join Now</Button></Link>
               </div>
             </section>
             {/* Footer - Premium Style */}

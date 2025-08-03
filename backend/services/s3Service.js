@@ -80,7 +80,6 @@ class S3Service {
         Key: fileName,
         Body: fileBuffer,
         ContentType: mimeType,
-        ACL: 'public-read',
         Metadata: {
           'user-id': userId.toString(),
           'upload-date': new Date().toISOString(),
@@ -91,11 +90,12 @@ class S3Service {
       const command = new PutObjectCommand(uploadParams);
       await this.s3Client.send(command);
 
-      const photoUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${fileName}`;
+      // Store the S3 key instead of presigned URL to keep database column shorter
+      const s3Key = fileName;
       
       return {
         success: true,
-        photoUrl,
+        photoUrl: s3Key,
         fileName,
         message: 'Profile photo uploaded successfully'
       };
@@ -107,18 +107,28 @@ class S3Service {
 
   /**
    * Delete a profile photo from S3
-   * @param {string} photoUrl - Full S3 URL of the photo
+   * @param {string} photoUrl - S3 key, full S3 URL, or presigned URL
    * @returns {Promise<Object>} - Delete result
    */
   async deleteProfilePhoto(photoUrl) {
     try {
-      if (!photoUrl || !photoUrl.includes('amazonaws.com/')) {
-        return { success: false, message: 'Invalid photo URL' };
+      let key;
+      
+      if (photoUrl.includes('amazonaws.com/')) {
+        // Direct S3 URL
+        const urlParts = photoUrl.split('.amazonaws.com/');
+        key = urlParts[1];
+      } else if (photoUrl.includes('?X-Amz-')) {
+        // Presigned URL - extract key
+        const urlParts = photoUrl.split('?')[0];
+        const keyParts = urlParts.split('/');
+        key = keyParts.slice(3).join('/'); // Remove protocol, bucket, and region
+      } else if (photoUrl.includes('profile-photos/')) {
+        // S3 key (stored in database)
+        key = photoUrl;
+      } else {
+        return { success: false, message: 'Invalid photo URL format' };
       }
-
-      // Extract the key from the URL
-      const urlParts = photoUrl.split('.amazonaws.com/');
-      const key = urlParts[1];
 
       const deleteParams = {
         Bucket: this.bucketName,
@@ -140,18 +150,41 @@ class S3Service {
 
   /**
    * Generate a presigned URL for temporary access to a private object
-   * @param {string} photoUrl - Full S3 URL of the photo
+   * @param {string} photoUrl - S3 key, full S3 URL, or presigned URL
    * @param {number} expiresIn - Expiration time in seconds (default: 3600)
    * @returns {Promise<string>} - Presigned URL
    */
   async generatePresignedUrl(photoUrl, expiresIn = 3600) {
     try {
-      if (!photoUrl || !photoUrl.includes('amazonaws.com/')) {
-        throw new Error('Invalid photo URL');
+      let key;
+      
+      // If it's already a presigned URL, extract the key properly
+      if (photoUrl.includes('?X-Amz-')) {
+        // Extract key from presigned URL by removing query parameters
+        const urlWithoutParams = photoUrl.split('?')[0];
+        // Remove the bucket and region from the URL
+        const urlParts = urlWithoutParams.split('/');
+        // Find the index after the bucket name
+        const bucketIndex = urlParts.findIndex(part => part.includes('s3'));
+        if (bucketIndex !== -1) {
+          key = urlParts.slice(bucketIndex + 1).join('/');
+        } else {
+          // Fallback: try to extract from the end
+          key = urlParts.slice(-2).join('/'); // profile-photos/user-16/filename.jpg
+        }
+      } else if (photoUrl.includes('amazonaws.com/')) {
+        // Direct S3 URL
+        const urlParts = photoUrl.split('.amazonaws.com/');
+        key = urlParts[1];
+      } else if (photoUrl.includes('profile-photos/')) {
+        // S3 key (stored in database) - this is what we want
+        key = photoUrl;
+      } else {
+        throw new Error('Invalid photo URL format');
       }
 
-      const urlParts = photoUrl.split('.amazonaws.com/');
-      const key = urlParts[1];
+      // Clean the key - remove any URL encoding
+      key = decodeURIComponent(key);
 
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
@@ -178,8 +211,17 @@ class S3Service {
   async updateProfilePhoto(fileBuffer, originalName, userId, mimeType, oldPhotoUrl) {
     try {
       // Delete old photo if it exists
-      if (oldPhotoUrl && oldPhotoUrl.includes('amazonaws.com/')) {
-        await this.deleteProfilePhoto(oldPhotoUrl);
+      if (oldPhotoUrl) {
+        // Handle both presigned URLs and direct S3 URLs
+        if (oldPhotoUrl.includes('amazonaws.com/')) {
+          await this.deleteProfilePhoto(oldPhotoUrl);
+        } else if (oldPhotoUrl.includes('?X-Amz-')) {
+          // Extract key from presigned URL
+          const urlParts = oldPhotoUrl.split('?')[0];
+          const keyParts = urlParts.split('/');
+          const key = keyParts.slice(3).join('/'); // Remove protocol, bucket, and region
+          await this.deleteProfilePhoto(`https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`);
+        }
       }
 
       // Upload new photo
@@ -194,6 +236,21 @@ class S3Service {
     } catch (error) {
       console.error('Error updating profile photo:', error);
       throw new Error(`Failed to update profile photo: ${error.message}`);
+    }
+  }
+
+  /**
+   * Refresh a presigned URL if it's expired or about to expire
+   * @param {string} photoUrl - Current photo URL (presigned or direct)
+   * @param {number} expiresIn - New expiration time in seconds (default: 3600)
+   * @returns {Promise<string>} - New presigned URL
+   */
+  async refreshPresignedUrl(photoUrl, expiresIn = 3600) {
+    try {
+      return await this.generatePresignedUrl(photoUrl, expiresIn);
+    } catch (error) {
+      console.error('Error refreshing presigned URL:', error);
+      throw new Error(`Failed to refresh presigned URL: ${error.message}`);
     }
   }
 

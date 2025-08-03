@@ -6,8 +6,6 @@ import {
   Users, 
   Briefcase, 
   Upload, 
-  FileText,
-  Settings,
   Shield,
   LogOut
 } from 'lucide-react';
@@ -22,14 +20,14 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+    <div className="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white dark:bg-gray-800 shadow-md flex-shrink-0 flex flex-col">
         <div className="p-4 flex items-center space-x-3 border-b dark:border-gray-700">
           <Shield className="w-8 h-8 text-blue-600" />
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
         </div>
-        <nav className="p-4 flex-1">
+        <nav className="p-4 flex-1 overflow-y-auto">
           <ul className="space-y-2">
             <li>
               <NavLink
@@ -91,36 +89,6 @@ const AdminLayout = () => {
                 <span className="font-medium">Bulk Upload</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/admin/reports"
-                className={({ isActive }) =>
-                  `w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`
-                }
-              >
-                <FileText className="w-5 h-5" />
-                <span className="font-medium">Reports</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/admin/settings"
-                className={({ isActive }) =>
-                  `w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`
-                }
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-medium">Settings</span>
-              </NavLink>
-            </li>
           </ul>
         </nav>
         {/* Logout Button */}
@@ -136,8 +104,8 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 p-6 lg:p-8">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>

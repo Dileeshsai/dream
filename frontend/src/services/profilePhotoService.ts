@@ -98,6 +98,15 @@ class ProfilePhotoService {
   }
 
   /**
+   * Fix profile photo URL if it's stored as presigned URL
+   * @returns Promise with fix result
+   */
+  async fixProfilePhotoUrl(): Promise<ProfilePhotoResponse> {
+    const response = await api.post('/profile-photo/fix');
+    return response.data;
+  }
+
+  /**
    * Validate file before upload
    * @param file - File to validate
    * @returns Validation result

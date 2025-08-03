@@ -240,7 +240,7 @@ const AdminDashboard = () => {
       {/* Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-md">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
             <Users className="w-6 h-6 text-blue-600 mb-2" />
             <p className="font-medium text-gray-900 dark:text-white">Manage Users</p>
@@ -250,11 +250,6 @@ const AdminDashboard = () => {
             <Briefcase className="w-6 h-6 text-green-600 mb-2" />
             <p className="font-medium text-gray-900 dark:text-white">Job Management</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Review and approve jobs</p>
-          </button>
-          <button className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
-            <BarChart3 className="w-6 h-6 text-purple-600 mb-2" />
-            <p className="font-medium text-gray-900 dark:text-white">View Reports</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Detailed analytics and reports</p>
           </button>
         </div>
       </div>

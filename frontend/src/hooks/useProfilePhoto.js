@@ -30,8 +30,22 @@ export const useProfilePhoto = () => {
       }
     } catch (err) {
       console.error('Error loading profile photo:', err);
-      setError('Failed to load profile photo');
-      setPhotoUrl(null);
+      
+      // Try to fix the URL if there's an error
+      try {
+        console.log('Attempting to fix profile photo URL...');
+        const fixResponse = await profilePhotoService.fixProfilePhotoUrl();
+        if (fixResponse.success && fixResponse.data.hasPhoto) {
+          setPhotoUrl(fixResponse.data.photoUrl);
+          console.log('Profile photo URL fixed successfully');
+        } else {
+          setPhotoUrl(null);
+        }
+      } catch (fixErr) {
+        console.error('Failed to fix profile photo URL:', fixErr);
+        setError('Failed to load profile photo');
+        setPhotoUrl(null);
+      }
     } finally {
       setLoading(false);
     }

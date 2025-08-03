@@ -65,11 +65,61 @@ const AdminBulkUpload = () => {
         <h2 className="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
           <CloudUpload className="w-7 h-7 text-blue-500" /> Bulk Upload Users
         </h2>
+        
+        {/* Template Download Section */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 className="font-semibold text-blue-800 mb-2">📥 Download Sample Template</h3>
+          <div className="flex flex-wrap gap-3">
+            <a 
+              href="/sample-bulk-upload-template.xlsx" 
+              download 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📊 Excel Template (.xlsx)
+            </a>
+            <a 
+              href="/bulk-upload-template-guide.md" 
+              target="_blank" 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              📖 Template Guide
+            </a>
+          </div>
+          <p className="text-sm text-blue-700 mt-2">
+            💡 <strong>Recommended:</strong> Use the Excel template for better formatting and easier data entry.
+          </p>
+        </div>
+
         <ol className="mb-6 text-gray-700 list-decimal list-inside space-y-1">
-          <li>Download the <a href="/sample-bulk-upload-template.xlsx" download className="text-blue-600 underline">sample template</a>.</li>
+          <li>Download the sample Excel template above.</li>
           <li>Fill in user, education, employment, and family details. <span className="text-xs text-gray-500">(Leave cells blank for missing data)</span></li>
-          <li>Upload the completed file below.</li>
+          <li>Save the file and upload it below.</li>
         </ol>
+        
+        {/* Template Structure Info */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h4 className="font-semibold text-gray-800 mb-2">📋 Template Structure</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+            <div>
+              <strong>Required Fields:</strong>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>full_name</li>
+                <li>email</li>
+                <li>phone (+91 format)</li>
+                <li>password</li>
+              </ul>
+            </div>
+            <div>
+              <strong>Optional Sections:</strong>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Profile details (51 total columns)</li>
+                <li>Education (up to 3 entries)</li>
+                <li>Employment (up to 3 entries)</li>
+                <li>Family members (up to 3 entries)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
         <form onSubmit={handleUpload}>
           <div
             className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 mb-4 transition-colors ${dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-100'}`}

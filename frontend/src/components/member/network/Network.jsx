@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,34 +27,69 @@ const Network = () => {
   const fetchMembers = async (page = 1, search = '', sort = 'recent') => {
     try {
       setLoading(true);
+      setError(null);
+      
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20',
         sortBy: sort
       });
       
-      if (search) {
-        params.append('search', search);
+      if (search && search.trim()) {
+        params.append('search', search.trim());
       }
 
       const response = await api.get(`/users/members?${params}`);
-      setMembers(response.data.members);
-      setPagination(response.data.pagination);
-      setError(null);
+      
+      if (response.data && response.data.members) {
+        setMembers(response.data.members);
+        setPagination(response.data.pagination);
+      } else {
+        setError('Invalid response format from server');
+      }
     } catch (err) {
       console.error('Error fetching members:', err);
-      setError('Failed to load members. Please try again.');
+      
+      if (err.response?.status === 401) {
+        setError('Please log in again to view members');
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to view members');
+      } else if (err.response?.status >= 500) {
+        setError('Server error. Please try again later.');
+      } else if (err.message === 'Network Error') {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('Failed to load members. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm !== '') {
+        fetchMembers(1, searchTerm, sortBy);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, sortBy]);
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
   const handleSearch = () => {
-    fetchMembers(1, searchTerm, sortBy);
+    if (searchTerm.trim() || !searchTerm) {
+      fetchMembers(1, searchTerm, sortBy);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    fetchMembers(1, '', sortBy);
   };
 
   const handleSortChange = (value) => {
@@ -171,6 +206,7 @@ const Network = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  disabled={loading}
                 />
               </div>
               <div className="flex gap-3 w-full lg:w-auto">
@@ -187,9 +223,27 @@ const Network = () => {
                 <Button 
                   className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg" 
                   onClick={handleSearch}
+                  disabled={loading}
                 >
-                  Search
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      Searching...
+                    </>
+                  ) : (
+                    'Search'
+                  )}
                 </Button>
+                {searchTerm && (
+                  <Button 
+                    variant="outline"
+                    className="h-12 px-4 border-gray-300 text-gray-600 hover:bg-gray-50" 
+                    onClick={handleClearSearch}
+                    disabled={loading}
+                  >
+                    Clear
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
@@ -197,7 +251,17 @@ const Network = () => {
 
         {error && (
           <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-600 font-medium">{error}</p>
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-red-600 font-medium">{error}</p>
+                <p className="text-red-500 text-sm mt-1">Please try refreshing the page or contact support if the problem persists.</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -325,8 +389,21 @@ const Network = () => {
             <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
               <Users className="h-12 w-12 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No members found</h3>
-            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search criteria</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              {searchTerm ? 'No members found for your search' : 'No members found'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchTerm ? `No results found for "${searchTerm}". Try different keywords or clear your search.` : 'Try adjusting your search criteria'}
+            </p>
+            {searchTerm && (
+              <Button 
+                variant="outline"
+                className="mt-4 px-6 py-2 border-gray-300 text-gray-600 hover:bg-gray-50" 
+                onClick={handleClearSearch}
+              >
+                Clear Search
+              </Button>
+            )}
           </div>
         )}
 

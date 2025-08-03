@@ -31,7 +31,7 @@ async function handleUserUpload(records) {
       errors.push({ email, phone, error: 'Missing required fields' });
       continue;
     }
-    const exists = await User.findOne({ where: { [User.sequelize.Op.or]: [{ email }, { phone }] } });
+    const exists = await User.findOne({ where: { [Op.or]: [{ email }, { phone }] } });
     if (exists) {
       skipped++;
       errors.push({ email, phone, error: 'Duplicate (email/phone)' });
@@ -239,6 +239,8 @@ async function handlePaymentUpload(records, adminId) {
 
 // Handler for combined user bulk upload (user, profile, education, employment, family)
 exports.bulkUploadUsers = async (req, res, next) => {
+  const { sequelize } = require('../models');
+  
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -248,8 +250,21 @@ exports.bulkUploadUsers = async (req, res, next) => {
     // Parse records
     let records = [];
     if (ext === '.csv') {
-      const text = req.file.buffer.toString('utf8');
-      records = parse(text, { columns: true, skip_empty_lines: true });
+      try {
+        const text = req.file.buffer.toString('utf8');
+        records = parse(text, { 
+          columns: true, 
+          skip_empty_lines: true,
+          relax_column_count: true, // Allow flexible column count
+          relax_quotes: true // Allow flexible quoting
+        });
+      } catch (parseError) {
+        return res.status(400).json({ 
+          error: 'CSV parsing failed', 
+          details: parseError.message,
+          suggestion: 'Please ensure all rows have the same number of columns as the header'
+        });
+      }
     } else if (ext === '.xlsx') {
       const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -257,68 +272,170 @@ exports.bulkUploadUsers = async (req, res, next) => {
     }
 
     let success = 0, failure = 0, errors = [];
+    
+    // Process each record in its own transaction
     for (const rec of records) {
       // User fields
       const { full_name, email, phone, password, photo_url, dob, gender, village, mandal, district, pincode, caste, subcaste, marital_status, native_place } = rec;
+      
+      // Validate required fields
       if (!full_name || !email || !phone || !password) {
         failure++;
-        errors.push({ email, phone, error: 'Missing required user fields' });
+        errors.push({ email: email || 'N/A', phone: phone || 'N/A', error: 'Missing required user fields' });
         continue;
       }
-      // Check for duplicate user
-      const exists = await User.findOne({ where: { [Op.or]: [{ email }, { phone }] } });
-      if (exists) {
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
         failure++;
-        errors.push({ email, phone, error: 'Duplicate (email/phone)' });
+        errors.push({ email, phone, error: 'Invalid email format' });
         continue;
       }
+
+      // Validate phone format (basic validation for Indian numbers)
+      const phoneRegex = /^\+91\s?\d{10}$/;
+      if (!phoneRegex.test(phone)) {
+        failure++;
+        errors.push({ email, phone, error: 'Invalid phone format. Use +91 followed by 10 digits' });
+        continue;
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        failure++;
+        errors.push({ email, phone, error: 'Password must be at least 6 characters long' });
+        continue;
+      }
+
+      // Start transaction for this record
+      const transaction = await sequelize.transaction();
+      
       try {
+        // Check for duplicate user within transaction
+        const exists = await User.findOne({ 
+          where: { [Op.or]: [{ email }, { phone }] },
+          transaction 
+        });
+        
+        if (exists) {
+          failure++;
+          errors.push({ email, phone, error: 'Duplicate (email/phone)' });
+          await transaction.rollback();
+          continue;
+        }
+
         // Hash the password before creating user
         const hashedPassword = await bcrypt.hash(password, 10);
-        // Create user
+        
+        // Create user within transaction
         const user = await User.create({
           full_name, email, phone, password_hash: hashedPassword, role: 'member', is_verified: true
-        });
-        // Create profile
+        }, { transaction });
+
+        // Validate and process date of birth
+        let processedDob = null;
+        if (dob) {
+          const dateObj = new Date(dob);
+          if (isNaN(dateObj.getTime())) {
+            throw new Error('Invalid date format for dob. Use YYYY-MM-DD format');
+          }
+          processedDob = dateObj;
+        }
+
+        // Validate gender
+        if (gender && !['male', 'female', 'other'].includes(gender.toLowerCase())) {
+          throw new Error('Invalid gender. Must be male, female, or other');
+        }
+
+        // Create profile within transaction
         await user.createProfile({
-          photo_url, dob, gender, village, mandal, district, pincode, caste, subcaste, marital_status, native_place
-        });
-        // Education details (up to 3)
+          photo_url, 
+          dob: processedDob, 
+          gender: gender ? gender.toLowerCase() : null, 
+          village, mandal, district, pincode, caste, subcaste, marital_status, native_place
+        }, { transaction });
+
+        // Education details (up to 3) within transaction
         for (let i = 1; i <= 3; i++) {
           const degree = rec[`education_degree_${i}`];
           const institution = rec[`education_institution_${i}`];
           const year_of_passing = rec[`education_year_of_passing_${i}`];
           const grade = rec[`education_grade_${i}`];
+          
           if (degree && institution && year_of_passing) {
-            await user.createEducationDetail({ degree, institution, year_of_passing, grade });
+            // Validate year of passing
+            const year = parseInt(year_of_passing);
+            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+              throw new Error(`Invalid year of passing for education ${i}: ${year_of_passing}`);
+            }
+            
+            await user.createEducationDetail({ 
+              degree, institution, year_of_passing: year, grade 
+            }, { transaction });
           }
         }
-        // Employment details (up to 3)
+
+        // Employment details (up to 3) within transaction
         for (let i = 1; i <= 3; i++) {
           const company_name = rec[`employment_company_name_${i}`];
           const role = rec[`employment_role_${i}`];
           const years_of_experience = rec[`employment_years_of_experience_${i}`];
           const currently_working = rec[`employment_currently_working_${i}`];
+          
           if (company_name && role) {
-            await user.createEmploymentDetail({ company_name, role, years_of_experience, currently_working: currently_working === 'true' || currently_working === true });
+            // Validate years of experience
+            let processedYears = null;
+            if (years_of_experience) {
+              const years = parseFloat(years_of_experience);
+              if (isNaN(years) || years < 0 || years > 50) {
+                throw new Error(`Invalid years of experience for employment ${i}: ${years_of_experience}`);
+              }
+              processedYears = years;
+            }
+
+            // Validate currently_working field
+            let processedCurrentlyWorking = false;
+            if (currently_working) {
+              if (typeof currently_working === 'string') {
+                processedCurrentlyWorking = currently_working.toLowerCase() === 'true';
+              } else {
+                processedCurrentlyWorking = Boolean(currently_working);
+              }
+            }
+
+            await user.createEmploymentDetail({ 
+              company_name, role, years_of_experience: processedYears, 
+              currently_working: processedCurrentlyWorking 
+            }, { transaction });
           }
         }
-        // Family members (up to 3)
+
+        // Family members (up to 3) within transaction
         for (let i = 1; i <= 3; i++) {
           const name = rec[`family_name_${i}`];
           const relation = rec[`family_relation_${i}`];
           const education = rec[`family_education_${i}`];
           const profession = rec[`family_profession_${i}`];
           if (name && relation) {
-            await user.createFamilyMember({ name, relation, education, profession });
+            await user.createFamilyMember({ 
+              name, relation, education, profession 
+            }, { transaction });
           }
         }
+
+        // If everything succeeds, commit the transaction
+        await transaction.commit();
         success++;
+        
       } catch (e) {
+        // If any error occurs, rollback the entire transaction for this record
+        await transaction.rollback();
         failure++;
         errors.push({ email, phone, error: e.message });
       }
     }
+
     // Log the upload
     await BulkUploadLog.create({
       uploaded_by: req.user.id,
@@ -327,8 +444,22 @@ exports.bulkUploadUsers = async (req, res, next) => {
       success_count: success,
       failure_count: failure
     });
-    res.status(201).json({ message: 'Bulk user upload processed', success, failure, errors });
-  } catch (err) { next(err); }
+
+    res.status(201).json({ 
+      message: 'Bulk user upload processed', 
+      success, 
+      failure, 
+      errors,
+      summary: {
+        total: records.length,
+        successful: success,
+        failed: failure,
+        success_rate: records.length > 0 ? ((success / records.length) * 100).toFixed(2) + '%' : '0%'
+      }
+    });
+  } catch (err) { 
+    next(err); 
+  }
 };
 
 exports.uploadBulk = async (req, res, next) => {

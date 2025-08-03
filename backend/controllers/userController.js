@@ -63,12 +63,21 @@ exports.getAllMembers = async (req, res, next) => {
     const { page = 1, limit = 20, search, sortBy = 'recent' } = req.query;
     const offset = (page - 1) * limit;
     
-    // Build where clause for search
-    const where = { role: 'member' };
-    if (search) {
-      where[User.sequelize.Op.or] = [
-        { full_name: { [User.sequelize.Op.like]: `%${search}%` } },
-        { email: { [User.sequelize.Op.like]: `%${search}%` } }
+    // Validate and sanitize inputs
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const searchTerm = search ? search.trim() : '';
+    
+    // Build where clause for search - exclude current user
+    const where = { 
+      role: 'member',
+      id: { [Op.ne]: req.user.id } // Exclude current user
+    };
+    
+    if (searchTerm) {
+      where[Op.or] = [
+        { full_name: { [Op.like]: `%${searchTerm}%` } },
+        { email: { [Op.like]: `%${searchTerm}%` } }
       ];
     }
 
@@ -92,25 +101,28 @@ exports.getAllMembers = async (req, res, next) => {
         {
           model: Profile,
           as: 'profile',
-          attributes: ['photo_url', 'village', 'mandal', 'district', 'native_place', 'caste', 'subcaste']
+          attributes: ['photo_url', 'village', 'mandal', 'district', 'native_place', 'caste', 'subcaste'],
+          required: false
         },
         {
           model: EducationDetail,
           as: 'educationDetails',
           attributes: ['degree', 'institution', 'year_of_passing', 'grade'],
           limit: 1,
-          order: [['id', 'DESC']]
+          order: [['id', 'DESC']],
+          required: false
         },
         {
           model: EmploymentDetail,
           as: 'employmentDetails',
           attributes: ['role', 'company_name', 'years_of_experience', 'currently_working'],
           limit: 1,
-          order: [['id', 'DESC']]
+          order: [['id', 'DESC']],
+          required: false
         }
       ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      limit: limitNum,
+      offset: (pageNum - 1) * limitNum,
       order
     });
 
@@ -143,13 +155,14 @@ exports.getAllMembers = async (req, res, next) => {
     res.json({
       members,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
         total: count,
-        pages: Math.ceil(count / limit)
+        limit: limitNum,
+        pages: Math.ceil(count / limitNum)
       }
     });
   } catch (err) { 
+    console.error('Error in getAllMembers:', err);
     next(err); 
   }
 }; 

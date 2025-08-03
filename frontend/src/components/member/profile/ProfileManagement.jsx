@@ -6,8 +6,10 @@ import PersonalInfo from './PersonalInfo';
 import ProfessionalInfo from './ProfessionalInfo';
 import FamilyDetails from './FamilyDetails';
 import { User, Briefcase, Users, Save } from 'lucide-react';
-import { apiGet, apiPost, apiPut } from '../../../services/apiService';
+import { apiGet, apiPost, apiPut, apiDelete } from '../../../services/apiService';
 import { useAuth } from '../../../contexts/AuthContext';
+import CustomAlert from '../../common/CustomAlert';
+import useCustomAlert from '../../../hooks/useCustomAlert';
 
 const ProfileManagement = () => {
   const [activeTab, setActiveTab] = useState('personal');
@@ -15,7 +17,8 @@ const ProfileManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [educationError, setEducationError] = useState(false);
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { alertState, showSuccess, showError, closeAlert } = useCustomAlert();
 
   // Move function definitions before they are used
   const mapProfileToPersonalInfo = (data, user) => {
@@ -240,7 +243,7 @@ const ProfileManagement = () => {
         console.log('Family details saved successfully');
       }
       
-      alert('Profile updated successfully!');
+      showSuccess('Profile updated successfully!');
       
       // Refresh the data to show updated information
       const fetchAllProfileData = async () => {
@@ -269,7 +272,7 @@ const ProfileManagement = () => {
       
     } catch (error) {
       console.error('Error saving profile data:', error);
-      alert('Failed to save profile data. Please try again.');
+      showError('Failed to save profile data. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -293,6 +296,27 @@ const ProfileManagement = () => {
     console.log('ProfileManagement savePersonalInfo called with data:', data);
     setSaving(true);
     try {
+      // Update user's basic information (name, email, phone)
+      const userPayload = {
+        full_name: data.name,
+        email: data.email,
+        phone: data.phone
+      };
+      
+      console.log('Saving user payload:', userPayload);
+      
+      // Update user information
+      await apiPut(`/users/${user.id}`, userPayload);
+      console.log('User info updated successfully');
+      
+      // Update the user object in AuthContext to reflect changes immediately
+      updateUser({
+        name: data.name,
+        email: data.email,
+        phone: data.phone
+      });
+      
+      // Update profile information
       const profilePayload = {
         photo_url: data.profileImage,
         dob: data.dateOfBirth,
@@ -312,12 +336,12 @@ const ProfileManagement = () => {
       // Try to update first, if it fails, create new
       try {
         await apiPut('/profiles', profilePayload);
-        console.log('Personal info updated successfully');
+        console.log('Profile info updated successfully');
       } catch (updateError) {
         console.log('Update failed, trying to create new profile:', updateError);
         // If update fails, try to create new profile
         await apiPost('/profiles', profilePayload);
-        console.log('Personal info created successfully');
+        console.log('Profile info created successfully');
       }
       
       // Refresh the data
@@ -327,10 +351,10 @@ const ProfileManagement = () => {
         profile: profileRes.data || {}
       }));
       
-      alert('Personal information saved successfully!');
+      showSuccess('Personal information saved successfully!');
     } catch (error) {
       console.error('Error saving personal info:', error);
-      alert('Failed to save personal information. Please try again.');
+      showError('Failed to save personal information. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -393,10 +417,10 @@ const ProfileManagement = () => {
         employment: employmentRes.data || []
       }));
       
-      alert('Employment information saved successfully!');
+      showSuccess('Employment information saved successfully!');
     } catch (error) {
       console.error('Error saving employment info:', error);
-      alert('Failed to save employment information. Please try again.');
+      showError('Failed to save employment information. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -459,10 +483,10 @@ const ProfileManagement = () => {
         education: educationRes.data || { educations: [] }
       }));
       
-      alert('Education information saved successfully!');
+      showSuccess('Education information saved successfully!');
     } catch (error) {
       console.error('Error saving education info:', error);
-      alert('Failed to save education information. Please try again.');
+      showError('Failed to save education information. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -557,19 +581,17 @@ const ProfileManagement = () => {
         family: familyRes.data || []
       }));
       
-      alert('Family information saved successfully!');
+      showSuccess('Family information saved successfully!');
     } catch (error) {
       console.error('Error saving family info:', error);
-      alert('Failed to save family information. Please try again.');
+      showError('Failed to save family information. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    // <div className="min-h-screen bg-gray-50">
-    //   <Navbar />
-      
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -677,7 +699,20 @@ const ProfileManagement = () => {
           </div>
         </div>
       </div>
-    // </div>
+      
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        showCancel={alertState.showCancel}
+        onConfirm={alertState.onConfirm}
+        confirmText={alertState.confirmText}
+        cancelText={alertState.cancelText}
+      />
+    </div>
   );
 };
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit, Save, X } from 'lucide-react';
+import CustomAlert from '../../common/CustomAlert';
+import useCustomAlert from '../../../hooks/useCustomAlert';
 
 const ProfessionalInfo = ({ data, onUpdate, onSaveWork, onSaveEducation }) => {
   const [workExperience, setWorkExperience] = useState(data?.workExperience || []);
@@ -10,6 +12,7 @@ const ProfessionalInfo = ({ data, onUpdate, onSaveWork, onSaveEducation }) => {
   const [originalEducationData, setOriginalEducationData] = useState([]);
   const [savingWork, setSavingWork] = useState(false);
   const [savingEducation, setSavingEducation] = useState(false);
+  const { alertState, showConfirm, closeAlert } = useCustomAlert();
 
   // Work Experience
   const handleWorkExperienceChange = (newWork) => {
@@ -66,17 +69,23 @@ const ProfessionalInfo = ({ data, onUpdate, onSaveWork, onSaveEducation }) => {
   };
 
   const handleDeleteWork = () => {
-    if (window.confirm('Are you sure you want to delete all work experience? This action cannot be undone.')) {
-      const emptyWork = [];
-      setWorkExperience(emptyWork);
-      if (onUpdate) {
-        onUpdate({ workExperience: emptyWork, education });
-      }
-      if (onSaveWork) {
-        onSaveWork(emptyWork);
-      }
-      setIsEditingWork(false);
-    }
+    showConfirm(
+      'Are you sure you want to delete all work experience? This action cannot be undone.',
+      () => {
+        const emptyWork = [];
+        setWorkExperience(emptyWork);
+        if (onUpdate) {
+          onUpdate({ workExperience: emptyWork, education });
+        }
+        if (onSaveWork) {
+          onSaveWork(emptyWork);
+        }
+        setIsEditingWork(false);
+      },
+      'Confirm Delete',
+      'Delete All',
+      'Cancel'
+    );
   };
 
   // Education
@@ -134,17 +143,23 @@ const ProfessionalInfo = ({ data, onUpdate, onSaveWork, onSaveEducation }) => {
   };
 
   const handleDeleteEducation = () => {
-    if (window.confirm('Are you sure you want to delete all education details? This action cannot be undone.')) {
-      const emptyEducation = [];
-      setEducation(emptyEducation);
-      if (onUpdate) {
-        onUpdate({ workExperience, education: emptyEducation });
-      }
-      if (onSaveEducation) {
-        onSaveEducation(emptyEducation);
-      }
-      setIsEditingEducation(false);
-    }
+    showConfirm(
+      'Are you sure you want to delete all education details? This action cannot be undone.',
+      () => {
+        const emptyEducation = [];
+        setEducation(emptyEducation);
+        if (onUpdate) {
+          onUpdate({ workExperience, education: emptyEducation });
+        }
+        if (onSaveEducation) {
+          onSaveEducation(emptyEducation);
+        }
+        setIsEditingEducation(false);
+      },
+      'Confirm Delete',
+      'Delete All',
+      'Cancel'
+    );
   };
 
   return (
@@ -368,7 +383,19 @@ const ProfessionalInfo = ({ data, onUpdate, onSaveWork, onSaveEducation }) => {
           </div>
         )}
       </section>
-
+      
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        showCancel={alertState.showCancel}
+        onConfirm={alertState.onConfirm}
+        confirmText={alertState.confirmText}
+        cancelText={alertState.cancelText}
+      />
     </div>
   );
 };

@@ -49,7 +49,7 @@ exports.login = async (req, res, next) => {
     if (!valid) throw new ValidationError('Invalid credentials');
     if (!user.is_verified) throw new ValidationError('User not verified');
     const token = jwt.sign({ user_id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-    res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, phone: user.phone, role: user.role } });
   } catch (err) { next(err); }
 };
 

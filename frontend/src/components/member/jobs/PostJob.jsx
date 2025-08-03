@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { apiPost } from '../../../services/apiService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
+import CustomAlert from '../../common/CustomAlert';
+import useCustomAlert from '../../../hooks/useCustomAlert';
 
 const PostJob = () => {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ const PostJob = () => {
   const [currentSkill, setCurrentSkill] = useState('');
   const [errors, setErrors] = useState({});
   const [showPreview, setShowPreview] = useState(false);
+  const { alertState, showSuccess, showError, closeAlert } = useCustomAlert();
 
   const handleChange = (field, value) => {
     if (field.includes('.')) {
@@ -116,10 +119,10 @@ const PostJob = () => {
       };
       try {
         await apiPost('/jobs', payload);
-        alert('Job posted successfully!');
+        showSuccess('Job posted successfully!');
         navigate('/jobs');
       } catch (err) {
-        alert('Failed to post job.');
+        showError('Failed to post job.');
       }
     }
   };
@@ -490,6 +493,19 @@ const PostJob = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        showCancel={alertState.showCancel}
+        onConfirm={alertState.onConfirm}
+        confirmText={alertState.confirmText}
+        cancelText={alertState.cancelText}
+      />
     </>
   );
 };

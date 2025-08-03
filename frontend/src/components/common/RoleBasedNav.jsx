@@ -6,8 +6,6 @@ import {
   Users, 
   Briefcase, 
   Upload, 
-  FileText,
-  Settings,
   Shield,
   User,
   Network,
@@ -24,7 +22,7 @@ const RoleBasedNav = ({ onLogout }) => {
     { to: '/profile', name: 'Profile', icon: User },
     { to: '/jobs', name: 'Jobs', icon: Briefcase },
     { to: '/network', name: 'Network', icon: Network },
-    { to: '/membership', name: 'Membership', icon: CreditCard },
+    { to: '/membership', name: 'Subscription', icon: CreditCard },
   ];
 
   // Admin navigation items
@@ -33,8 +31,6 @@ const RoleBasedNav = ({ onLogout }) => {
     { to: '/admin/users', name: 'User Management', icon: Users },
     { to: '/admin/jobs', name: 'Job Management', icon: Briefcase },
     { to: '/admin/bulk-upload', name: 'Bulk Upload', icon: Upload },
-    { to: '/admin/reports', name: 'Reports', icon: FileText },
-    { to: '/admin/settings', name: 'Settings', icon: Settings },
   ];
 
   const navItems = isAdmin ? adminNavItems : memberNavItems;

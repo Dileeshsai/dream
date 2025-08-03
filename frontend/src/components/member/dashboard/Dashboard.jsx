@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useProfilePhoto } from '../../../hooks/useProfilePhoto';
+import ProfileImage from '../../common/ProfileImage';
 import { 
   User, 
   Briefcase, 
@@ -17,7 +19,8 @@ import {
   RefreshCw,
   Eye,
   CheckCircle,
-  Clock
+  Clock,
+  X
 } from 'lucide-react';
 import { memberDashboardService } from '../../../services/memberDashboardService';
 import {
@@ -30,6 +33,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { photoUrl, loading: photoLoading } = useProfilePhoto();
   const [stats, setStats] = useState([]);
   const [profileComplete, setProfileComplete] = useState(0);
   const [recentActivities, setRecentActivities] = useState([]);
@@ -37,6 +41,7 @@ const Dashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -96,6 +101,20 @@ const Dashboard = () => {
     return iconMap[type] || Bell;
   };
 
+  const handleImageClick = () => {
+    setShowImageModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowImageModal(false);
+  };
+
+  const handleModalBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setShowImageModal(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -145,10 +164,26 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <img 
-              src={user?.profileImage || '/placeholder.svg'} 
-              alt="Profile" 
-              className="w-20 h-20 rounded-full border-4 border-white object-cover"
+            <ProfileImage
+              photoUrl={photoUrl}
+              size="xl"
+              loading={photoLoading}
+              alt="Profile"
+              border={true}
+              borderColor="border-white"
+              onClick={handleImageClick}
+            />
+          </div>
+          {/* Mobile Profile Photo */}
+          <div className="md:hidden flex justify-center mb-4">
+            <ProfileImage
+              photoUrl={photoUrl}
+              size="lg"
+              loading={photoLoading}
+              alt="Profile"
+              border={true}
+              borderColor="border-white"
+              onClick={handleImageClick}
             />
           </div>
         </div>
@@ -351,6 +386,40 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Profile Image Modal */}
+      {showImageModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={handleModalBackdropClick}
+        >
+          <div className="relative max-w-2xl max-h-full">
+            <button
+              onClick={handleCloseModal}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors z-10"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <div className="bg-white rounded-lg overflow-hidden shadow-2xl">
+              {photoLoading ? (
+                <div className="w-96 h-96 flex items-center justify-center bg-gray-100">
+                  <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+              ) : photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt="Profile"
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                />
+              ) : (
+                <div className="w-96 h-96 flex items-center justify-center bg-gray-100">
+                  <User className="w-24 h-24 text-gray-400" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

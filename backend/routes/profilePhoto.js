@@ -190,6 +190,44 @@ router.get('/',
 
 /**
  * @swagger
+ * /api/profile-photo/fix:
+ *   post:
+ *     summary: Fix profile photo URL if it's stored as presigned URL
+ *     tags: [Profile Photo]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile photo URL fixed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     photoUrl:
+ *                       type: string
+ *                       nullable: true
+ *                     hasPhoto:
+ *                       type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/fix', 
+  authenticateJWT, 
+  profilePhotoController.fixProfilePhotoUrl
+);
+
+/**
+ * @swagger
  * /api/profile-photo/presigned:
  *   get:
  *     summary: Get presigned URL for private photo access
@@ -232,6 +270,58 @@ router.get('/',
 router.get('/presigned', 
   authenticateJWT, 
   profilePhotoController.getPresignedUrl
+);
+
+/**
+ * @swagger
+ * /api/profile-photo/refresh-url:
+ *   post:
+ *     summary: Refresh presigned URL for profile photo
+ *     tags: [Profile Photo]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               expiresIn:
+ *                 type: integer
+ *                 default: 3600
+ *                 description: Expiration time in seconds (default 1 hour)
+ *     responses:
+ *       200:
+ *         description: Profile photo URL refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     photoUrl:
+ *                       type: string
+ *                     expiresIn:
+ *                       type: integer
+ *                     profile:
+ *                       type: object
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: No profile photo found
+ *       500:
+ *         description: Server error
+ */
+router.post('/refresh-url', 
+  authenticateJWT, 
+  profilePhotoController.refreshPhotoUrl
 );
 
 module.exports = router; 

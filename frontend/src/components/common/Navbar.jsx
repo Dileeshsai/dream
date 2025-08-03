@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfilePhoto } from '../../hooks/useProfilePhoto';
 import ProfilePhoto from './ProfilePhoto';
+import ProfileImage from './ProfileImage';
 import { 
   Bell, 
   Search, 
@@ -91,7 +92,7 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <ProfilePhoto
+                <ProfileImage
                   photoUrl={photoUrl}
                   size="sm"
                   loading={loading}
@@ -119,7 +120,7 @@ const Navbar = () => {
                     onClick={() => setIsProfileOpen(false)}
                   >
                     <CreditCard className="h-4 w-4 mr-3" />
-                    Membership
+                    Subscription
                   </Link>
                   <Link
                     to="/settings"

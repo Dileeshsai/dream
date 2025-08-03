@@ -115,8 +115,7 @@ const About = () => {
                 <div className="text-left" style={{ paddingLeft: '32px', width: '100%' }}>
                   <div className="text-2xl md:text-2xl font-extrabold" style={{ color: '#38606a', letterSpacing: '0.5px', marginBottom: '8px', fontFamily: 'inherit' }}>OUR VISION</div>
                   <div className="text-base md:text-base font-medium" style={{ color: '#222', lineHeight: '1.6', maxWidth: '420px', fontFamily: 'inherit' }}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </div>
+                  To build a unified and inclusive support system that empowers marginalized communities through collective effort, shared responsibility, and sustainable development, fostering dignity, opportunity, and equality for all.                  </div>
                 </div>
               </div>
             </div>
@@ -138,8 +137,8 @@ const About = () => {
                 <div className="text-left" style={{ paddingRight: '32px', width: '100%' }}>
                   <div className="text-2xl md:text-2xl font-extrabold" style={{ color: '#38606a', letterSpacing: '0.5px', marginBottom: '8px', fontFamily: 'inherit' }}>OUR MISSION</div>
                   <div className="text-base md:text-base font-medium" style={{ color: '#222', lineHeight: '1.6', maxWidth: '420px', fontFamily: 'inherit' }}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </div>
+                  we strive to strengthen the foundational ecosystem that enables broader community upliftment, data-driven outreach, and social empowerment.  Aimed at channeling subscriptions and voluntary contributions towards the structured development of administrative infrastructure, digital platforms, and operational support.
+</div>
                 </div>
               </div>
             </div>

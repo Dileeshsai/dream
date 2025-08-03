@@ -3,14 +3,24 @@ import axios from 'axios';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Eye, Edit, Trash2, Loader2, CheckCircle } from 'lucide-react';
+import { Search, Filter, Eye, Edit, Trash2, Loader2, CheckCircle, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '../../contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { apiGet, apiPost, apiDelete } from '../../services/apiService';
+import { apiGet, apiPost, apiPut, apiDelete } from '../../services/apiService';
 import { useToast } from '@/hooks/use-toast';
+import ProfileImage from '../common/ProfileImage';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 
 const AdminUserManagement = () => {
@@ -22,6 +32,13 @@ const AdminUserManagement = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const { toast } = useToast();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [usersPerPage, setUsersPerPage] = useState(10);
+  
   // Replace all individual form states with a single formData state
   const [formData, setFormData] = useState({
     user: { 
@@ -66,12 +83,24 @@ const AdminUserManagement = () => {
   const [phoneExists, setPhoneExists] = useState(false);
 
   // Helper to fetch users (for reuse after edit/delete)
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = currentPage, search = searchTerm) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiGet('/admin/users');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: usersPerPage.toString()
+      });
+      
+      if (search) {
+        params.append('search', search);
+      }
+      
+      const response = await apiGet(`/admin/users?${params.toString()}`);
       setUsers(response.data?.users || []);
+      setTotalPages(response.data?.pagination?.pages || 1);
+      setTotalUsers(response.data?.pagination?.total || 0);
+      setCurrentPage(response.data?.pagination?.page || 1);
     } catch (error) {
       console.error("Failed to fetch users:", error);
       if (error.code === 'ERR_NETWORK' || error.response?.status === 404) {
@@ -80,9 +109,13 @@ const AdminUserManagement = () => {
           { id: 2, full_name: 'Jane Smith', email: 'jane@example.com', phone: '+0987654321', role: 'admin' }
         ]);
         setError(null);
+        setTotalPages(1);
+        setTotalUsers(2);
       } else {
         setError("Failed to fetch users. Please try again.");
         setUsers([]);
+        setTotalPages(1);
+        setTotalUsers(0);
       }
     }
     setLoading(false);
@@ -96,27 +129,159 @@ const AdminUserManagement = () => {
     // eslint-disable-next-line
   }, [user]);
 
+  // Refetch when usersPerPage changes
+  useEffect(() => {
+    if (user?.token) {
+      setCurrentPage(1);
+      fetchUsers(1, searchTerm);
+    }
+    // eslint-disable-next-line
+  }, [usersPerPage]);
+
   const handleSearch = async (e) => {
     const term = e.target.value;
     setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
     setLoading(true);
     setError(null);
     try {
-        const response = await apiGet(`/admin/users?search=${term}`);
+        const params = new URLSearchParams({
+          page: '1',
+          limit: usersPerPage.toString()
+        });
+        
+        if (term) {
+          params.append('search', term);
+        }
+        
+        const response = await apiGet(`/admin/users?${params.toString()}`);
         setUsers(response.data?.users || []);
+        setTotalPages(response.data?.pagination?.pages || 1);
+        setTotalUsers(response.data?.pagination?.total || 0);
+        setCurrentPage(1);
     } catch (error) {
         console.error("Failed to search users:", error);
         setError("Failed to search users. Please try again.");
         setUsers([]);
+        setTotalPages(1);
+        setTotalUsers(0);
     }
     setLoading(false);
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchUsers(page, searchTerm);
+  };
+
+  // Generate pagination items
+  const generatePaginationItems = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Show first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(1);
+            }}
+            isActive={currentPage === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      
+      // Show ellipsis if needed
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Show current page and neighbors
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+      
+      // Show ellipsis if needed
+      if (currentPage < totalPages - 2) {
+        items.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      // Show last page
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(totalPages);
+              }}
+              isActive={currentPage === totalPages}
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+    
+    return items;
   };
 
   // Update handleDelete to refresh user list after delete
   const handleDelete = async (userId) => {
     try {
       await apiDelete(`/admin/users/${userId}`);
-      await fetchUsers(); // refresh list
+      // Refresh list with current pagination state
+      await fetchUsers(currentPage, searchTerm);
       toast({
         title: "Success!",
         description: "User has been deleted successfully.",
@@ -150,7 +315,7 @@ const AdminUserManagement = () => {
     setShowEditModal(true);
   };
 
-  // Edit form change handler (for basic info only, can be expanded)
+  // Edit form change handler (for basic info and profile fields)
   const handleEditChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -170,10 +335,22 @@ const AdminUserManagement = () => {
       }
     }
     
-    setEditUserData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    // Handle nested profile fields
+    if (['dob', 'gender', 'village', 'mandal', 'district', 'pincode', 'caste', 'subcaste', 'marital_status', 'native_place'].includes(name)) {
+      setEditUserData((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          [name]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else {
+      // Handle basic user fields
+      setEditUserData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
   };
 
   // Edit submit handler
@@ -184,25 +361,50 @@ const AdminUserManagement = () => {
     
     // Validate date of birth before submission
     const submissionData = { ...editUserData };
-    if (submissionData.dob) {
-      const dobDate = new Date(submissionData.dob);
+    if (submissionData.profile?.dob) {
+      const dobDate = new Date(submissionData.profile.dob);
       if (isNaN(dobDate.getTime())) {
         setError('Please enter a valid date of birth.');
         setEditLoading(false);
         return;
       }
       // Format date properly for backend
-      submissionData.dob = dobDate.toISOString().split('T')[0];
+      submissionData.profile.dob = dobDate.toISOString().split('T')[0];
+    }
+    
+    // Prepare data for submission
+    const filteredData = {
+      full_name: submissionData.full_name,
+      email: submissionData.email,
+      phone: submissionData.phone,
+      role: submissionData.role
+    };
+    
+    // Include profile data if it exists and user is a member
+    if (submissionData.role === 'member' && submissionData.profile) {
+      filteredData.profile = submissionData.profile;
     }
     
     try {
-      // Use PUT or POST as per backend (assuming PUT here)
-      await apiPost(`/admin/users/update/${submissionData.id}`, submissionData);
+      // Use PUT method as defined in backend route
+      await apiPut(`/admin/users/${submissionData.id}`, filteredData);
       setShowEditModal(false);
       setEditUserData(null);
-      await fetchUsers();
+      await fetchUsers(currentPage, searchTerm);
+      
+      // Show success message
+      toast({
+        title: "Success!",
+        description: "User information has been updated successfully.",
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+      });
     } catch (error) {
-      setError(error.response?.data?.error || error.message || 'Failed to update user.');
+      console.error('Error updating user:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to update user. Please try again.';
+      setError(errorMessage);
     }
     setEditLoading(false);
   };
@@ -594,8 +796,8 @@ const AdminUserManagement = () => {
         icon: <CheckCircle className="h-4 w-4 text-green-600" />,
       });
       
-      // Refresh user list
-      fetchUsers();
+      // Refresh user list with current pagination state
+      fetchUsers(currentPage, searchTerm);
       
     } catch (error) {
       console.error('Error adding user:', error);
@@ -653,7 +855,27 @@ const AdminUserManagement = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filters</Button>
+            <div className="flex gap-2">
+              <Select 
+                value={usersPerPage.toString()} 
+                onValueChange={(value) => {
+                  setUsersPerPage(parseInt(value));
+                  setCurrentPage(1);
+                  fetchUsers(1, searchTerm);
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 per page</SelectItem>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline"> Search<Search className="mr-2 h-4 w-4" /></Button>
+            </div>
           </div>
 
           {/* Error Message */}
@@ -729,6 +951,42 @@ const AdminUserManagement = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+              <div className="text-sm text-gray-600">
+                Showing {((currentPage - 1) * usersPerPage) + 1} to {Math.min(currentPage * usersPerPage, totalUsers)} of {totalUsers} users
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                      }} 
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {generatePaginationItems()}
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                      }} 
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+
+
         </CardContent>
       </Card>
       {/* Add User Modal */}
@@ -1282,11 +1540,32 @@ const AdminUserManagement = () => {
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-6">
-              <div>
-                <b>Full Name:</b> {selectedUser.full_name}<br />
-                <b>Email:</b> {selectedUser.email}<br />
-                <b>Phone:</b> {selectedUser.phone}<br />
-                <b>Role:</b> {selectedUser.role}
+              {/* Profile Photo and Basic Info */}
+              <div className="flex items-start space-x-6">
+                <div className="flex-shrink-0">
+                  <ProfileImage
+                    photoUrl={selectedUser.profile?.photo_url}
+                    size="xl"
+                    alt={`${selectedUser.full_name}'s profile photo`}
+                    className="border-4 border-gray-200"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedUser.full_name}</h3>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div><b>Email:</b> {selectedUser.email}</div>
+                    <div><b>Phone:</b> {selectedUser.phone}</div>
+                    <div><b>Role:</b> <span className="capitalize">{selectedUser.role}</span></div>
+                    {selectedUser.is_verified !== undefined && (
+                      <div><b>Email Verified:</b> {selectedUser.is_verified ? 'Yes' : 'No'}</div>
+                    )}
+                  </div>
+                  {selectedUser.profile?.photo_url && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Profile photo can be updated by the user in their profile settings
+                    </p>
+                  )}
+                </div>
               </div>
               {/* Member-specific details */}
               {selectedUser.role === 'member' && (
@@ -1360,40 +1639,234 @@ const AdminUserManagement = () => {
 
       {/* Edit User Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           {editUserData && (
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="edit_full_name">Full Name</Label>
-                <Input id="edit_full_name" name="full_name" value={editUserData.full_name || ''} onChange={handleEditChange} required />
+            <form onSubmit={handleEditSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-between">
+                  <span>{error}</span>
+                  <button 
+                    onClick={() => setError(null)} 
+                    className="text-red-700 hover:text-red-900"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {/* Profile Photo Display */}
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <ProfileImage
+                    photoUrl={editUserData.profile?.photo_url}
+                    size="lg"
+                    alt={`${editUserData.full_name}'s profile photo`}
+                    className="border-4 border-gray-200"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">{editUserData.full_name}</h3>
+                  <p className="text-sm text-gray-600">Profile photo can be updated by the user in their profile settings</p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="edit_email">Email</Label>
-                <Input id="edit_email" name="email" type="email" value={editUserData.email || ''} onChange={handleEditChange} required />
+
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h4 className="text-md font-semibold text-gray-900 border-b pb-2">Basic Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit_full_name">Full Name *</Label>
+                    <Input 
+                      id="edit_full_name" 
+                      name="full_name" 
+                      value={editUserData.full_name || ''} 
+                      onChange={handleEditChange} 
+                      placeholder="Enter full name"
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_email">Email Address *</Label>
+                    <Input 
+                      id="edit_email" 
+                      name="email" 
+                      type="email" 
+                      value={editUserData.email || ''} 
+                      onChange={handleEditChange} 
+                      placeholder="Enter email address"
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_phone">Phone Number *</Label>
+                    <Input 
+                      id="edit_phone" 
+                      name="phone" 
+                      value={editUserData.phone || ''} 
+                      onChange={handleEditChange} 
+                      placeholder="+91 9876543210"
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit_role">Role *</Label>
+                    <Select value={editUserData.role} onValueChange={val => setEditUserData(prev => ({ ...prev, role: val }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="member">Member</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="edit_phone">Phone</Label>
-                <Input id="edit_phone" name="phone" value={editUserData.phone || ''} onChange={handleEditChange} required />
-              </div>
-              <div>
-                <Label htmlFor="edit_role">Role</Label>
-                <Select value={editUserData.role} onValueChange={val => setEditUserData(prev => ({ ...prev, role: val }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Add more fields for profile, education, etc. as needed */}
+
+              {/* Member-specific profile information */}
+              {editUserData.role === 'member' && editUserData.profile && (
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-gray-900 border-b pb-2">Profile Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit_dob">Date of Birth</Label>
+                      <Input 
+                        id="edit_dob" 
+                        name="dob" 
+                        type="date" 
+                        value={editUserData.profile.dob || ''} 
+                        onChange={handleEditChange}
+                        max={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_gender">Gender</Label>
+                      <Select 
+                        value={editUserData.profile.gender || ''} 
+                        onValueChange={val => setEditUserData(prev => ({ 
+                          ...prev, 
+                          profile: { ...prev.profile, gender: val } 
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_village">Village</Label>
+                      <Input 
+                        id="edit_village" 
+                        name="village" 
+                        value={editUserData.profile.village || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter village name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_mandal">Mandal</Label>
+                      <Input 
+                        id="edit_mandal" 
+                        name="mandal" 
+                        value={editUserData.profile.mandal || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter mandal name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_district">District</Label>
+                      <Input 
+                        id="edit_district" 
+                        name="district" 
+                        value={editUserData.profile.district || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter district name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_pincode">Pincode</Label>
+                      <Input 
+                        id="edit_pincode" 
+                        name="pincode" 
+                        value={editUserData.profile.pincode || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter pincode"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_caste">Caste</Label>
+                      <Input 
+                        id="edit_caste" 
+                        name="caste" 
+                        value={editUserData.profile.caste || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter caste"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_subcaste">Subcaste</Label>
+                      <Input 
+                        id="edit_subcaste" 
+                        name="subcaste" 
+                        value={editUserData.profile.subcaste || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter subcaste"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_marital_status">Marital Status</Label>
+                      <Select 
+                        value={editUserData.profile.marital_status || ''} 
+                        onValueChange={val => setEditUserData(prev => ({ 
+                          ...prev, 
+                          profile: { ...prev.profile, marital_status: val } 
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select marital status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="single">Single</SelectItem>
+                          <SelectItem value="married">Married</SelectItem>
+                          <SelectItem value="divorced">Divorced</SelectItem>
+                          <SelectItem value="widowed">Widowed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit_native_place">Native Place</Label>
+                      <Input 
+                        id="edit_native_place" 
+                        name="native_place" 
+                        value={editUserData.profile.native_place || ''} 
+                        onChange={handleEditChange}
+                        placeholder="Enter native place"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>Cancel</Button>
-                <Button type="submit" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</Button>
+                <Button type="submit" disabled={editLoading}>
+                  {editLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           )}

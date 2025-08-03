@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { Upload, Camera, MapPin, Calendar, User, Phone, Mail, Edit, Save, X, Trash2, Loader2 } from 'lucide-react';
 import profilePhotoService from '../../../services/profilePhotoService';
+import CustomAlert from '../../common/CustomAlert';
+import useCustomAlert from '../../../hooks/useCustomAlert';
+import ProfileImage from '../../common/ProfileImage';
 
 const PersonalInfo = ({ data, onUpdate, onSave }) => {
   // Add default values to prevent null errors
@@ -33,10 +36,14 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [photoError, setPhotoError] = useState('');
+  const { alertState, showError, showConfirm, closeAlert } = useCustomAlert();
 
   // Update formData when data prop changes
   React.useEffect(() => {
     console.log('PersonalInfo: data prop changed:', data);
+    console.log('PersonalInfo: profileImage value:', data?.profileImage);
+    console.log('PersonalInfo: name value:', data?.name);
+    console.log('PersonalInfo: phone value:', data?.phone);
     if (data) {
       setFormData(data);
       setOriginalData(data);
@@ -154,7 +161,7 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving personal info:', error);
-      alert('Failed to save personal information. Please try again.');
+      showError('Failed to save personal information. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -166,40 +173,54 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete your personal information? This action cannot be undone.')) {
-      const emptyData = { ...defaultData };
-      setFormData(emptyData);
-      if (onUpdate) {
-        onUpdate(emptyData);
-      }
-      if (onSave) {
-        onSave(emptyData);
-      }
-      setIsEditing(false);
-    }
+    showConfirm(
+      'Are you sure you want to delete your personal information? This action cannot be undone.',
+      () => {
+        const emptyData = { ...defaultData };
+        setFormData(emptyData);
+        if (onUpdate) {
+          onUpdate(emptyData);
+        }
+        if (onSave) {
+          onSave(emptyData);
+        }
+        setIsEditing(false);
+      },
+      'Confirm Delete',
+      'Delete',
+      'Cancel'
+    );
   };
 
   return (
     <div className="p-6">
       {console.log('PersonalInfo render - isEditing:', isEditing, 'formData:', formData)}
+      {console.log('PersonalInfo render - profileImage:', formData?.profileImage)}
+      {console.log('PersonalInfo render - name:', formData?.name)}
+      {console.log('PersonalInfo render - phone:', formData?.phone)}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
-        {!isEditing && (
-          <div className="text-sm text-gray-500 bg-blue-50 px-3 py-1 rounded-lg">
-            Click "Edit" to modify your information
-          </div>
-        )}
-      </div>
+         
+          <button
+            onClick={handleEdit}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+          >
+            <Edit className="w-5 h-5 mr-2" /> Edit Information
+          </button>
+        </div>
       
       {/* Profile Image */}
       <div className="mb-8">
         <label className="block text-sm font-medium text-gray-700 mb-3">Profile Photo</label>
         <div className="flex items-center space-x-6">
           <div className="relative">
-            <img
-              src={formData?.profileImage || '/placeholder.svg'}
+            <ProfileImage
+              photoUrl={formData?.profileImage || ''}
+              size="2xl"
               alt="Profile"
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+              className="border-4 border-gray-200"
+              loading={uploadingPhoto}
+              showFallback={true}
             />
             {uploadingPhoto && (
               <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
@@ -261,11 +282,16 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
             <div className="mt-2 text-xs text-gray-500">
               Supported formats: JPEG, PNG, GIF, WebP (max 5MB)
             </div>
+            {!isEditing && (
+              <div className="mt-2 text-xs text-blue-600">
+                Click "Edit Information" to upload a new profile photo
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${isEditing ? 'bg-blue-50 p-4 rounded-lg border-2 border-blue-200' : ''}`}>
         {/* Basic Information */}
         <div className="space-y-4">
           <div>
@@ -292,7 +318,7 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
               type="email"
               value={formData?.email || ''}
               onChange={(e) => handleChange('email', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
               placeholder="Enter your email"
               disabled={!isEditing}
             />
@@ -307,7 +333,7 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
               type="tel"
               value={formData?.phone || ''}
               onChange={(e) => handleChange('phone', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
               placeholder="+91 9876543210"
               disabled={!isEditing}
             />
@@ -322,7 +348,7 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
               type="date"
               value={formData?.dateOfBirth || ''}
               onChange={(e) => handleChange('dateOfBirth', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
               disabled={!isEditing}
             />
           </div>
@@ -332,7 +358,7 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
             <select
               value={formData?.gender || ''}
               onChange={(e) => handleChange('gender', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
               disabled={!isEditing}
             >
               <option value="">Select Gender</option>
@@ -468,39 +494,43 @@ const PersonalInfo = ({ data, onUpdate, onSave }) => {
         </div>
       </div>
 
-      {/* Edit/Save/Cancel/Delete Buttons */}
-      <div className="mt-8 flex justify-end space-x-4">
-        {isEditing ? (
-          <>
-            <button
-              onClick={handleSave}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : <><Save className="w-5 h-5 mr-2" /> Save</>}
-            </button>
-            <button
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              <X className="w-5 h-5 mr-2" /> Cancel
-            </button>
-            <button
-              onClick={handleDelete}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Trash2 className="w-5 h-5 mr-2" /> Delete
-            </button>
-          </>
-        ) : (
+      {/* Save/Cancel/Delete Buttons */}
+      {isEditing && (
+        <div className="mt-8 flex justify-end space-x-4">
           <button
-            onClick={handleEdit}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+            onClick={handleSave}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            disabled={saving}
           >
-            <Edit className="w-5 h-5 mr-2" /> Edit Information
+            {saving ? 'Saving...' : <><Save className="w-5 h-5 mr-2" /> Save</>}
           </button>
-        )}
-      </div>
+          <button
+            onClick={handleCancel}
+            className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            <X className="w-5 h-5 mr-2" /> Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <Trash2 className="w-5 h-5 mr-2" /> Delete
+          </button>
+        </div>
+      )}
+      
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        showCancel={alertState.showCancel}
+        onConfirm={alertState.onConfirm}
+        confirmText={alertState.confirmText}
+        cancelText={alertState.cancelText}
+      />
     </div>
   );
 };

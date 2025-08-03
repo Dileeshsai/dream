@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Users, Save, X } from 'lucide-react';
+import CustomAlert from '../../common/CustomAlert';
+import useCustomAlert from '../../../hooks/useCustomAlert';
 
 const FamilyDetails = ({ data, onUpdate, onSave }) => {
   const [formData, setFormData] = useState(data || { members: [] });
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { alertState, showError, showWarning, showConfirm, closeAlert } = useCustomAlert();
 
   // Update formData when data prop changes
   React.useEffect(() => {
@@ -84,7 +87,7 @@ const FamilyDetails = ({ data, onUpdate, onSave }) => {
     );
 
     if (invalidMembers.length > 0) {
-      alert('Please ensure all family members have a name (at least 2 characters) and relation selected.');
+      showWarning('Please ensure all family members have a name (at least 2 characters) and relation selected.');
       return;
     }
 
@@ -103,7 +106,7 @@ const FamilyDetails = ({ data, onUpdate, onSave }) => {
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving family info:', error);
-      alert('Failed to save family information. Please try again.');
+      showError('Failed to save family information. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -115,17 +118,23 @@ const FamilyDetails = ({ data, onUpdate, onSave }) => {
   };
 
   const handleDeleteAll = () => {
-    if (window.confirm('Are you sure you want to delete all family members? This action cannot be undone.')) {
-      const emptyData = { members: [] };
-      setFormData(emptyData);
-      if (onUpdate) {
-        onUpdate(emptyData);
-      }
-      if (onSave) {
-        onSave(emptyData);
-      }
-      setIsEditing(false);
-    }
+    showConfirm(
+      'Are you sure you want to delete all family members? This action cannot be undone.',
+      () => {
+        const emptyData = { members: [] };
+        setFormData(emptyData);
+        if (onUpdate) {
+          onUpdate(emptyData);
+        }
+        if (onSave) {
+          onSave(emptyData);
+        }
+        setIsEditing(false);
+      },
+      'Confirm Delete',
+      'Delete All',
+      'Cancel'
+    );
   };
 
   const relationOptions = [
@@ -264,6 +273,19 @@ const FamilyDetails = ({ data, onUpdate, onSave }) => {
           </div>
         )}
       </div>
+      
+      {/* Custom Alert Modal */}
+      <CustomAlert
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        showCancel={alertState.showCancel}
+        onConfirm={alertState.onConfirm}
+        confirmText={alertState.confirmText}
+        cancelText={alertState.cancelText}
+      />
     </div>
   );
 };

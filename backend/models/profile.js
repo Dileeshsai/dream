@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       unique: true
     },
-    photo_url: DataTypes.STRING,
+    photo_url: DataTypes.STRING(1000),
     dob: DataTypes.DATE,
     gender: DataTypes.ENUM('male', 'female', 'other'),
     village: DataTypes.STRING(100),

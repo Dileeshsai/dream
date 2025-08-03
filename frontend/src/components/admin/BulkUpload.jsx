@@ -25,16 +25,34 @@ const BulkUpload = () => {
   ];
 
   const requiredFields = [
-    { key: 'name', label: 'Full Name', required: true },
+    { key: 'full_name', label: 'Full Name', required: true },
     { key: 'email', label: 'Email Address', required: true },
-    { key: 'phone', label: 'Phone Number', required: false },
-    { key: 'location', label: 'Location', required: false },
-    { key: 'skills', label: 'Skills', required: false },
-    { key: 'experience', label: 'Experience Level', required: false }
+    { key: 'phone', label: 'Phone Number', required: true },
+    { key: 'password', label: 'Password', required: true },
+    { key: 'photo_url', label: 'Photo URL', required: false },
+    { key: 'dob', label: 'Date of Birth', required: false },
+    { key: 'gender', label: 'Gender', required: false },
+    { key: 'village', label: 'Village', required: false },
+    { key: 'mandal', label: 'Mandal', required: false },
+    { key: 'district', label: 'District', required: false },
+    { key: 'pincode', label: 'Pincode', required: false },
+    { key: 'caste', label: 'Caste', required: false },
+    { key: 'subcaste', label: 'Subcaste', required: false },
+    { key: 'marital_status', label: 'Marital Status', required: false },
+    { key: 'native_place', label: 'Native Place', required: false }
   ];
 
   const sampleFileColumns = [
-    'name', 'email', 'phone', 'location', 'skills', 'experience', 'education', 'company'
+    'full_name', 'email', 'phone', 'password', 'photo_url', 'dob', 'gender', 'village', 'mandal', 'district', 'pincode', 'caste', 'subcaste', 'marital_status', 'native_place',
+    'education_degree_1', 'education_institution_1', 'education_year_of_passing_1', 'education_grade_1',
+    'education_degree_2', 'education_institution_2', 'education_year_of_passing_2', 'education_grade_2',
+    'education_degree_3', 'education_institution_3', 'education_year_of_passing_3', 'education_grade_3',
+    'employment_company_name_1', 'employment_role_1', 'employment_years_of_experience_1', 'employment_currently_working_1',
+    'employment_company_name_2', 'employment_role_2', 'employment_years_of_experience_2', 'employment_currently_working_2',
+    'employment_company_name_3', 'employment_role_3', 'employment_years_of_experience_3', 'employment_currently_working_3',
+    'family_name_1', 'family_relation_1', 'family_education_1', 'family_profession_1',
+    'family_name_2', 'family_relation_2', 'family_education_2', 'family_profession_2',
+    'family_name_3', 'family_relation_3', 'family_education_3', 'family_profession_3'
   ];
 
   const handleFileUpload = (event) => {
@@ -44,7 +62,7 @@ const BulkUpload = () => {
       setUploadStep(2);
       
       // Mock file parsing - in real app, you'd parse the actual file
-      const mockColumns = ['Full Name', 'Email', 'Phone', 'Location', 'Skills', 'Years of Experience'];
+      const mockColumns = ['full_name', 'email', 'phone', 'password', 'photo_url', 'dob', 'gender', 'village', 'mandal', 'district', 'pincode', 'caste', 'subcaste', 'marital_status', 'native_place'];
       setFieldMapping(mockColumns.reduce((acc, col) => ({ ...acc, [col]: '' }), {}));
     }
   };
@@ -86,21 +104,11 @@ const BulkUpload = () => {
   };
 
   const downloadSampleFile = () => {
-    // Create sample CSV content
-    const headers = ['name,email,phone,location,skills,experience,education,company'];
-    const sampleData = [
-      'John Doe,john@example.com,+91 9876543210,Bangalore,React,3 years,B.Tech,TechCorp',
-      'Jane Smith,jane@example.com,+91 9876543211,Mumbai,Vue.js,2 years,MCA,StartupXYZ'
-    ];
-    
-    const csvContent = [headers, ...sampleData].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    // Link to the CSV template file in public directory
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sample_bulk_upload.csv';
+    a.href = '/sample-bulk-upload-template.csv';
+    a.download = 'sample-bulk-upload-template.csv';
     a.click();
-    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -165,6 +173,11 @@ const BulkUpload = () => {
                 </div>
               ))}
             </div>
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> The sample template is in CSV format which can be opened in Excel. The template includes all required columns and example data.
+              </p>
+            </div>
           </div>
 
           {/* Upload Area */}
@@ -196,10 +209,22 @@ const BulkUpload = () => {
             <h4 className="font-medium text-blue-900 mb-2">File Requirements:</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• First row should contain column headers</li>
-              <li>• Required fields: Full Name, Email Address</li>
-              <li>• Optional fields: Phone, Location, Skills, Experience</li>
-              <li>• Use comma-separated values for multiple skills</li>
+              <li>• Required fields: full_name, email, phone, password</li>
+              <li>• Optional fields: photo_url, dob, gender, village, mandal, district, pincode, caste, subcaste, marital_status, native_place</li>
+              <li>• Education details: education_degree_1, education_institution_1, education_year_of_passing_1, education_grade_1 (up to 3 entries)</li>
+              <li>• Employment details: employment_company_name_1, employment_role_1, employment_years_of_experience_1, employment_currently_working_1 (up to 3 entries)</li>
+              <li>• Family details: family_name_1, family_relation_1, family_education_1, family_profession_1 (up to 3 entries)</li>
+              <li>• Download the sample template for the complete structure</li>
             </ul>
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <a 
+                href="/bulk-upload-template-guide.md" 
+                target="_blank" 
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
+              >
+                📖 View detailed template guide
+              </a>
+            </div>
           </div>
         </div>
       )}

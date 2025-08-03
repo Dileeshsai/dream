@@ -16,7 +16,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     // Try to get user from localStorage on initial load
     const savedUser = localStorage.getItem('dreamSocietyUser');
-    return savedUser ? JSON.parse(savedUser) : null;
+    const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+    
+    // If user exists but doesn't have phone field, we'll need to refresh the data
+    if (parsedUser && !parsedUser.phone) {
+      console.log('User data missing phone field, will refresh on next login');
+    }
+    
+    return parsedUser;
   });
   const [loading, setLoading] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState(() => {
@@ -40,6 +47,7 @@ export const AuthProvider = ({ children }) => {
         id: data.user.id,
         name: data.user.full_name,
         email: data.user.email,
+        phone: data.user.phone,
         role: data.user.role,
         token: data.token,
         profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
@@ -93,6 +101,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     // Clear user from localStorage
     localStorage.removeItem('dreamSocietyUser');
+  };
+
+  const updateUser = (updatedUserData) => {
+    const updatedUser = { ...user, ...updatedUserData };
+    setUser(updatedUser);
+    localStorage.setItem('dreamSocietyUser', JSON.stringify(updatedUser));
   };
 
   const clearPendingRegistration = () => {
@@ -155,6 +169,7 @@ export const AuthProvider = ({ children }) => {
         id: loginResponse.data.user.id,
         name: loginResponse.data.user.full_name,
         email: loginResponse.data.user.email,
+        phone: loginResponse.data.user.phone,
         role: loginResponse.data.user.role,
         token: loginResponse.data.token,
         profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
@@ -187,6 +202,7 @@ export const AuthProvider = ({ children }) => {
     verifyOTP,
     resendOTP,
     clearPendingRegistration,
+    updateUser,
     loading,
     isAuthenticated: !!user,
     pendingRegistration
