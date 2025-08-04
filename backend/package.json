@@ -7,6 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "node test-api.js",
+    "test:errors": "node test-error-handling.js",
     "migrate": "sequelize db:migrate",
     "seed": "sequelize db:seed:all",
     "swagger-autogen": "node utils/swaggerGen.js"
@@ -21,6 +22,7 @@
     "csv-parse": "^6.0.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
     "express-validator": "^7.0.1",
     "fs": "^0.0.1-security",
     "joi": "^17.9.2",

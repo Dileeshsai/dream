@@ -28,7 +28,7 @@ const ProfileManagement = () => {
     
     return {
       profileImage: profile.photo_url || '',
-      name: user?.name || user?.full_name || '',
+      name: user?.full_name || user?.name || '',
       email: user?.email || '',
       phone: user?.phone || profile.phone || '',
       dateOfBirth: profile.dob ? profile.dob.slice(0, 10) : '',
@@ -310,48 +310,71 @@ const ProfileManagement = () => {
       console.log('User info updated successfully');
       
       // Update the user object in AuthContext to reflect changes immediately
-      updateUser({
-        name: data.name,
-        email: data.email,
-        phone: data.phone
-      });
+      try {
+        updateUser({
+          full_name: data.name,
+          email: data.email,
+          phone: data.phone
+        });
+        console.log('User context updated successfully');
+      } catch (updateError) {
+        console.warn('Failed to update user context:', updateError);
+        // Don't fail the entire operation if context update fails
+      }
       
       // Update profile information
       const profilePayload = {
-        photo_url: data.profileImage,
-        dob: data.dateOfBirth,
-        gender: data.gender,
-        village: data.address?.village,
-        mandal: data.address?.mandal,
-        district: data.address?.district,
-        pincode: data.address?.pin,
-        caste: data.community?.caste,
-        subcaste: data.community?.subcaste,
-        native_place: data.community?.nativePlace,
-        marital_status: data.maritalStatus
+        photo_url: data.profileImage || '',
+        dob: data.dateOfBirth || null,
+        gender: data.gender || null,
+        village: data.address?.village || '',
+        mandal: data.address?.mandal || '',
+        district: data.address?.district || '',
+        pincode: data.address?.pin || '',
+        caste: data.community?.caste || '',
+        subcaste: data.community?.subcaste || '',
+        native_place: data.community?.nativePlace || '',
+        marital_status: data.maritalStatus || ''
       };
       
       console.log('Saving profile payload:', profilePayload);
+      console.log('Profile payload keys:', Object.keys(profilePayload));
+      console.log('Profile payload values:', Object.values(profilePayload));
       
-      // Try to update first, if it fails, create new
+      // For new users, try to create profile first, then update if it exists
+      let profileUpdated = false;
+      
       try {
-        await apiPut('/profiles', profilePayload);
-        console.log('Profile info updated successfully');
-      } catch (updateError) {
-        console.log('Update failed, trying to create new profile:', updateError);
-        // If update fails, try to create new profile
+        // First try to create a new profile
         await apiPost('/profiles', profilePayload);
         console.log('Profile info created successfully');
+        profileUpdated = true;
+      } catch (createError) {
+        console.log('Profile creation failed, trying to update existing profile:', createError);
+        console.log('Create error response:', createError.response?.data);
+        
+        // If creation fails (profile already exists), try to update
+        try {
+          await apiPut('/profiles', profilePayload);
+          console.log('Profile info updated successfully');
+          profileUpdated = true;
+        } catch (updateError) {
+          console.error('Both profile creation and update failed:', updateError);
+          console.log('Update error response:', updateError.response?.data);
+          throw new Error(`Failed to save profile information: ${updateError.response?.data?.message || updateError.message}`);
+        }
       }
       
-      // Refresh the data
-      const profileRes = await apiGet('/profiles');
-      setProfileData(prev => ({
-        ...prev,
-        profile: profileRes.data || {}
-      }));
-      
-      showSuccess('Personal information saved successfully!');
+      if (profileUpdated) {
+        // Refresh the data
+        const profileRes = await apiGet('/profiles');
+        setProfileData(prev => ({
+          ...prev,
+          profile: profileRes.data || {}
+        }));
+        
+        showSuccess('Personal information saved successfully!');
+      }
     } catch (error) {
       console.error('Error saving personal info:', error);
       showError('Failed to save personal information. Please try again.');

@@ -13,30 +13,30 @@ const Society = () => {
 
       {/* Main Content - Society Section */}
       <div className="flex flex-col min-h-screen ">
-        <section className="w-full flex justify-center py-12 bg-white">
+        <section className="w-full flex justify-center py-8 md:py-12 bg-white px-4">
           <div className="w-full max-w-5xl flex flex-col items-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#22505a] mb-12 text-center">Discover Your Role in Dream Society</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#22505a] mb-8 md:mb-12 text-center">Discover Your Role in Dream Society</h2>
             <ScrollTimelineSteps />
           </div>
         </section>
 
-        <section className="w-full flex justify-center items-center py-12 bg-gradient-to-r from-sky-200 via-blue-100 to-white">
-        <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-stretch justify-between gap-8 px-4">
+        <section className="w-full flex justify-center items-center py-8 md:py-12 bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
+        <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-stretch justify-between gap-6 md:gap-8">
           {/* Left: Purpose and Aspirations */}
-          <div className="flex-1 flex items-center justify-center md:justify-start mb-8 md:mb-0">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-left leading-tight">Purpose and<br/>Aspirations</h2>
+          <div className="flex-1 flex items-center justify-center md:justify-start mb-6 md:mb-0">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 text-center md:text-left leading-tight">Purpose and<br/>Aspirations</h2>
           </div>
           {/* Center: Aim */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center">
-            <h3 className="text-2xl font-bold mb-2 text-gray-900">Aim</h3>
-            <p className="text-base md:text-lg text-gray-800 max-w-md text-left">
+            <h3 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Aim</h3>
+            <p className="text-sm md:text-base lg:text-lg text-gray-800 max-w-md text-center md:text-left">
               To create a unified digital platform that empowers individuals and families within the community by facilitating networking, professional growth, and access to opportunities, while preserving and celebrating cultural heritage.
             </p>
           </div>
           {/* Right: Objectives */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center">
-            <h3 className="text-2xl font-bold mb-2 text-gray-900">Objectives</h3>
-            <ul className="list-disc pl-5 text-base md:text-lg text-gray-800 max-w-md text-left">
+            <h3 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Objectives</h3>
+            <ul className="list-disc pl-5 text-sm md:text-base lg:text-lg text-gray-800 max-w-md text-center md:text-left">
               <li className="mb-2">Foster meaningful connections among members to build a supportive and collaborative community. Lize volunteers to actively participate in community service</li>
               <li>Ensure a safe, inclusive, and user-friendly platform where all members are respected and their data is protected.</li>
             </ul>
@@ -45,53 +45,53 @@ const Society = () => {
       </section>
 
         {/* Events & Feed Section - Clean Modern Style */}
-            <section className="w-full px-0 bg-white animate-fade-in-up py-12" style={{ animationDelay: '0.3s' }}>
-              <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+            <section className="w-full px-4 md:px-0 bg-white animate-fade-in-up py-8 md:py-12" style={{ animationDelay: '0.3s' }}>
+              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 <div>
-                  <h2 className="text-2xl font-bold mb-6 text-sky-800 drop-shadow">Upcoming Events</h2>
-                  <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                  <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Upcoming Events</h2>
+                  <div className="space-y-4 md:space-y-6">
+                    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-sky-200 text-sky-800 px-3 py-1 rounded-full text-xs font-semibold">July 30, 2025</span>
-                        <span className="font-semibold text-sky-700">Virtual Networking Night</span>
+                        <span className="bg-sky-200 text-sky-800 px-2 md:px-3 py-1 rounded-full text-xs font-semibold">July 30, 2025</span>
+                        <span className="font-semibold text-sky-700 text-sm md:text-base">Virtual Networking Night</span>
                       </div>
-                      <div className="text-sky-700">Connect with professionals and mentors in a fun, interactive online event.</div>
+                      <div className="text-sky-700 text-sm md:text-base">Connect with professionals and mentors in a fun, interactive online event.</div>
                       <Button size="sm" className="mt-2 bg-gradient-to-r from-sky-400 to-blue-400 text-white animate-gradient-x">Join</Button>
                     </div>
-                    <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Aug 10, 2025</span>
-                        <span className="font-semibold text-blue-700">Career Growth Workshop</span>
+                        <span className="bg-blue-200 text-blue-800 px-2 md:px-3 py-1 rounded-full text-xs font-semibold">Aug 10, 2025</span>
+                        <span className="font-semibold text-blue-700 text-sm md:text-base">Career Growth Workshop</span>
                       </div>
-                      <div className="text-sky-700">Join our expert panel for tips on advancing your career and building your personal brand.</div>
+                      <div className="text-sky-700 text-sm md:text-base">Join our expert panel for tips on advancing your career and building your personal brand.</div>
                       <Button size="sm" className="mt-2 bg-gradient-to-r from-blue-400 to-purple-400 text-white animate-gradient-x">Learn More</Button>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold mb-6 text-sky-800 drop-shadow">Latest from the Community</h2>
-                  <div className="space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                  <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Latest from the Community</h2>
+                  <div className="space-y-4 md:space-y-6">
+                    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                       <div className="flex items-center gap-3">
-                        <img src="/dreamsocietylogo.png" alt="User" className="w-10 h-10 " />
+                        <img src="/dreamsocietylogo.png" alt="User" className="w-8 h-8 md:w-10 md:h-10" />
                         <div>
-                          <div className="font-semibold text-sky-800">Lakshmi</div>
+                          <div className="font-semibold text-sky-800 text-sm md:text-base">Lakshmi</div>
                           <div className="text-xs text-sky-500">2 mins ago</div>
                         </div>
                       </div>
-                      <div className="text-sky-700">Excited to join UNITY Nest! Looking forward to connecting with like-minded professionals. 🚀</div>
-                      <a href="#" className="text-sky-500 hover:underline text-sm mt-2">See more</a>
+                      <div className="text-sky-700 text-sm md:text-base">Excited to join UNITY Nest! Looking forward to connecting with like-minded professionals. 🚀</div>
+                      <a href="#" className="text-sky-500 hover:underline text-xs md:text-sm mt-2">See more</a>
                     </div>
-                    <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                       <div className="flex items-center gap-3">
-                        <img src="/dreamsocietylogo.png" alt="User" className="w-10 h-10 rounded-full border-2 border-blue-300 animate-float" />
+                        <img src="/dreamsocietylogo.png" alt="User" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-blue-300 animate-float" />
                         <div>
-                          <div className="font-semibold text-sky-800">Uday </div>
+                          <div className="font-semibold text-sky-800 text-sm md:text-base">Uday </div>
                           <div className="text-xs text-sky-500">10 mins ago</div>
                         </div>
                       </div>
-                      <div className="text-sky-700">Just landed a new job through UNITY Nest! The community support here is amazing. 🙌</div>
-                      <a href="#" className="text-sky-500 hover:underline text-sm mt-2">See more</a>
+                      <div className="text-sky-700 text-sm md:text-base">Just landed a new job through UNITY Nest! The community support here is amazing. 🙌</div>
+                      <a href="#" className="text-sky-500 hover:underline text-xs md:text-sm mt-2">See more</a>
                     </div>
                   </div>
                 </div>
@@ -99,19 +99,44 @@ const Society = () => {
             </section>
         {/* Footer */}
         <footer className="w-full bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
             <div className="text-center md:text-left mb-4 md:mb-0">
-              <div className="text-lg font-bold text-sky-800">UNITY Nest</div>
-              <p className="text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
+              <div className="text-base md:text-lg font-bold text-sky-800">UNITY Nest</div>
+              <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
             </div>
-            <div className="flex gap-6">
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook /></a>
+            <div className="flex gap-4 md:gap-6">
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
             </div>
           </div>
         </footer>
       </div>
+      <style>{`
+        @keyframes fade-in-up {
+          0% { opacity: 0; transform: translateY(40px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 1.2s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        @keyframes gradient-x {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 3s ease infinite;
+        }
+      `}</style>
     </>
   );
 };

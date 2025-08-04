@@ -694,7 +694,8 @@ const AdminUserManagement = () => {
   // Refactor handleAddUser to submit the entire formData to the new endpoint
   const handleAddUser = async (e) => {
     e.preventDefault();
-    if (!user || !user.token) {
+    const token = localStorage.getItem('token');
+    if (!user || !token) {
       setError('Authentication required. Please log in again.');
       return;
     }
@@ -755,10 +756,14 @@ const AdminUserManagement = () => {
     setAddLoading(true);
     setError(null); // Clear previous errors
     
+    console.log('Submitting user data:', submissionData);
+    console.log('User role:', submissionData.user.role);
+    
     try {
       // Use different endpoints based on user role
       if (submissionData.user.role === 'admin') {
         // For admin users, use the simple user creation endpoint
+        console.log('Creating admin user via /admin/users endpoint');
         await apiPost('/admin/users', {
           full_name: submissionData.user.full_name,
           email: submissionData.user.email,
@@ -768,6 +773,7 @@ const AdminUserManagement = () => {
         });
       } else {
         // For member users, use the full user creation endpoint
+        console.log('Creating member user via /admin/users/full endpoint');
         await apiPost('/admin/users/full', submissionData);
       }
       
@@ -815,6 +821,12 @@ const AdminUserManagement = () => {
       
     } catch (error) {
       console.error('Error adding user:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
       let errorMessage = 'Failed to add user. Please try again.';
       
       if (error.response?.data?.error) {
@@ -1529,7 +1541,7 @@ const AdminUserManagement = () => {
                 {/* Stepper Navigation */}
                 <div className="flex gap-4 mt-8">
                   <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                  <Button type="submit" disabled={addLoading || !user || !user.token}>
+                  <Button type="submit" disabled={addLoading || !user || !localStorage.getItem('token')}>
                     {addLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

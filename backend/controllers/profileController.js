@@ -24,8 +24,18 @@ exports.getProfile = async (req, res, next) => {
 exports.createProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    console.log('Creating profile for user:', userId);
+    console.log('Request body:', req.body);
+    
     const exists = await Profile.findOne({ where: { user_id: userId } });
-    if (exists) throw new ValidationError('Profile already exists');
+    if (exists) {
+      // If profile exists, update it instead of throwing error
+      console.log('Profile already exists, updating instead of creating');
+      Object.assign(exists, req.body);
+      await exists.save();
+      console.log('Profile updated successfully');
+      return res.json(exists);
+    }
     
     // Handle date of birth validation
     const data = { ...req.body, user_id: userId };
@@ -40,9 +50,14 @@ exports.createProfile = async (req, res, next) => {
       }
     }
     
+    console.log('Creating new profile with data:', data);
     const profile = await Profile.create(data);
+    console.log('Profile created successfully:', profile.id);
     res.status(201).json(profile);
-  } catch (err) { next(err); }
+  } catch (err) { 
+    console.error('Error in createProfile:', err);
+    next(err); 
+  }
 };
 
 exports.updateProfile = async (req, res, next) => {
@@ -71,13 +86,16 @@ exports.updateProfile = async (req, res, next) => {
         user_id: userId,
         ...updateData
       });
+      console.log('New profile created:', newProfile.id);
       return res.json(newProfile);
     }
     
     console.log('Found existing profile, updating...');
+    console.log('Profile before update:', profile.toJSON());
     Object.assign(profile, updateData);
     await profile.save();
     console.log('Profile updated successfully');
+    console.log('Profile after update:', profile.toJSON());
     res.json(profile);
   } catch (err) { 
     console.error('Error updating profile:', err);

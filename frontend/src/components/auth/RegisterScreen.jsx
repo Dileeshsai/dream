@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft, Loader } from 'lucide-react';
 import Captcha from '../common/Captcha';
+import TermsAndConditions from '../common/TermsAndConditions';
 import { apiPost } from '../../services/apiService';
 import WelcomeHeader from '../welcome/WelcomeHeader';
 
@@ -21,6 +22,7 @@ const RegisterScreen = () => {
   const [errors, setErrors] = useState({});
   const [captchaValid, setCaptchaValid] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const { register, loading, pendingRegistration } = useAuth();
   const navigate = useNavigate();
 
@@ -110,76 +112,17 @@ const RegisterScreen = () => {
         const result = await register(payload);
         console.log('Registration result:', result);
         
-        // Only navigate if registration was successful
-        if (result && result.success !== false) {
+        // Check if registration was successful
+        if (result && result.success) {
           console.log('Registration successful, navigating to OTP verification...');
           navigate('/verify-otp');
         } else {
-          console.log('Registration failed, not navigating');
-          setErrors({ submit: 'Registration failed. Please try again.' });
+          console.log('Registration failed:', result.error);
+          setErrors({ submit: result.error || 'Registration failed. Please try again.' });
         }
       } catch (error) {
         console.error('Registration error:', error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        
-        let errorMessage = 'Registration failed. Please try again.';
-        
-        // Handle different types of errors
-        if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (error.response) {
-          // Server responded with error status
-          const status = error.response.status;
-          const errorData = error.response.data;
-          
-          if (status === 404) {
-            errorMessage = 'Server not found. Please try again later.';
-          } else if (status === 500) {
-            errorMessage = 'Server error. Please try again later.';
-          } else if (status === 503) {
-            errorMessage = 'Service temporarily unavailable. Please try again later.';
-          } else if (status === 400) {
-            // Check for specific validation errors from backend
-            if (errorData && errorData.error) {
-              if (errorData.error.includes('already registered') || errorData.error.includes('already exists')) {
-                errorMessage = 'User already exists. Please use a different email or phone number.';
-              } else if (errorData.error.includes('All fields are required')) {
-                errorMessage = 'Please fill in all required fields.';
-              } else if (errorData.error.includes('Email or phone already registered')) {
-                errorMessage = 'Email or phone number already registered. Please use different credentials.';
-              } else {
-                errorMessage = errorData.error;
-              }
-            } else {
-              errorMessage = 'Invalid request. Please check your information.';
-            }
-          } else if (status >= 400 && status < 500) {
-            errorMessage = 'Invalid request. Please check your information.';
-          } else if (status >= 500) {
-            errorMessage = 'Server error. Please try again later.';
-          }
-        } else if (error.request) {
-          // Request was made but no response received
-          errorMessage = 'No response from server. Please check your connection and try again.';
-        } else if (error.message) {
-          // Other error with message
-          if (error.message.includes('timeout')) {
-            errorMessage = 'Request timeout. Please try again.';
-          } else if (error.message.includes('canceled')) {
-            errorMessage = 'Request was canceled. Please try again.';
-          } else if (error.message.includes('already registered') || error.message.includes('already exists')) {
-            errorMessage = 'User already exists. Please use a different email or phone number.';
-          } else {
-            // Use the actual error message if it's meaningful
-            errorMessage = error.message;
-          }
-        }
-        
-        setErrors({ submit: errorMessage });
+        setErrors({ submit: 'Registration failed. Please try again.' });
       }
     }
   };
@@ -208,8 +151,7 @@ const RegisterScreen = () => {
 
   const handleTermsClick = (e) => {
     e.preventDefault();
-    // Open PDF in a new tab without download
-    window.open('/DREAMS_Terms_Conditions.pdf', '_blank', 'noopener,noreferrer');
+    setShowTerms(true);
   };
 
   return (
@@ -459,6 +401,12 @@ const RegisterScreen = () => {
           </div>
         </div>
       </div>
+
+      {/* Terms and Conditions Modal */}
+      <TermsAndConditions 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+      />
     </div>
   );
 };

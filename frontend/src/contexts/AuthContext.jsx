@@ -110,7 +110,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       console.log('AuthContext: Attempting login with credentials:', credentials);
-      const response = await api.post('/auth/login', credentials);
+      
+      // Add timeout to the request
+      const response = await api.post('/auth/login', credentials, {
+        timeout: 10000 // 10 seconds timeout
+      });
+      
       console.log('AuthContext: Login response:', response.data);
       const { token, user: userData } = response.data;
       
@@ -126,27 +131,140 @@ export const AuthProvider = ({ children }) => {
       return { success: true, user: userData };
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Enhanced error handling
+      let errorMessage = 'Login failed. Please try again.';
+      let errorType = 'general';
+      
+      if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        errorMessage = 'No internet connection. Please check your network and try again.';
+        errorType = 'network';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Please try again.';
+        errorType = 'timeout';
+      } else if (error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+        
+        switch (status) {
+          case 400:
+            errorMessage = errorData?.error || 'Invalid email or password.';
+            errorType = 'validation';
+            break;
+          case 401:
+            errorMessage = 'Invalid email or password. Please check your credentials.';
+            errorType = 'credentials';
+            break;
+          case 403:
+            errorMessage = 'Access denied. Your account may be suspended.';
+            errorType = 'access_denied';
+            break;
+          case 404:
+            errorMessage = 'Login service not found. Please try again later.';
+            errorType = 'service_not_found';
+            break;
+          case 429:
+            errorMessage = 'Too many login attempts. Please wait before trying again.';
+            errorType = 'rate_limit';
+            break;
+          case 500:
+            errorMessage = 'Server error. Please try again later.';
+            errorType = 'server_error';
+            break;
+          case 502:
+          case 503:
+          case 504:
+            errorMessage = 'Service temporarily unavailable. Please try again later.';
+            errorType = 'service_unavailable';
+            break;
+          default:
+            errorMessage = errorData?.error || 'An unexpected error occurred.';
+            errorType = 'unknown';
+        }
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your connection.';
+        errorType = 'no_response';
+      } else {
+        errorMessage = error.message || 'An unexpected error occurred.';
+        errorType = 'unknown';
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+        error: errorMessage,
+        type: errorType
       };
     }
   };
 
   const register = async (userData) => {
     try {
+      console.log('AuthContext: Starting registration process');
       const response = await api.post('/auth/register', userData);
-      const { token, user: newUser } = response.data;
+      console.log('AuthContext: Registration response:', response.data);
       
-      localStorage.setItem('token', token);
-      setUser(newUser);
+      // Registration is successful but user is not created yet
+      // Store email for OTP verification
+      localStorage.setItem('pendingRegistrationEmail', userData.email);
       
-      return { success: true };
+      return { 
+        success: true, 
+        message: response.data.message,
+        email: response.data.email
+      };
     } catch (error) {
       console.error('Registration error:', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Registration failed' 
+      };
+    }
+  };
+
+  const verifyOtp = async (otpData) => {
+    try {
+      console.log('AuthContext: Starting OTP verification');
+      const response = await api.post('/auth/verify-otp', otpData);
+      console.log('AuthContext: OTP verification response:', response.data);
+      
+      const { token, user: newUser } = response.data;
+      
+      // Store token and set user
+      localStorage.setItem('token', token);
+      setUser(newUser);
+      
+      // Clear pending registration
+      localStorage.removeItem('pendingRegistrationEmail');
+      
+      return { 
+        success: true, 
+        user: newUser,
+        token: token
+      };
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'OTP verification failed' 
+      };
+    }
+  };
+
+  const resendOtp = async (email) => {
+    try {
+      console.log('AuthContext: Resending OTP');
+      const response = await api.post('/auth/resend-otp', { email });
+      console.log('AuthContext: Resend OTP response:', response.data);
+      
+      return { 
+        success: true, 
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to resend OTP' 
       };
     }
   };
@@ -157,15 +275,25 @@ export const AuthProvider = ({ children }) => {
     setProfilePhoto({ url: null, loading: false, error: null, lastLoaded: null });
   };
 
+  const updateUser = useCallback((userUpdates) => {
+    setUser(prevUser => {
+      if (!prevUser) return userUpdates;
+      return { ...prevUser, ...userUpdates };
+    });
+  }, []);
+
   const value = {
     user,
     loading,
     login,
     register,
+    verifyOtp,
+    resendOtp,
     logout,
     profilePhoto,
     loadProfilePhoto,
-    updateProfilePhoto
+    updateProfilePhoto,
+    updateUser
   };
 
   return (

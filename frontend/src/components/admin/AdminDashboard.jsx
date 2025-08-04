@@ -183,7 +183,7 @@ const AdminDashboard = () => {
               recentUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-md">
                   <div>
-                    <p className="font-medium text-gray-800 dark:text-gray-200">{user.name}</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">{user.full_name || user.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
                       {user.role} • Joined {user.joinDate}

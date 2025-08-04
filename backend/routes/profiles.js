@@ -6,7 +6,7 @@ const validate = require('../middlewares/validate');
 const Joi = require('joi');
 
 const profileSchema = Joi.object({
-  photo_url: Joi.string().uri().allow('', null),
+  photo_url: Joi.string().allow('', null),
   dob: Joi.alternatives().try(Joi.date().iso(), Joi.string().allow('', null)),
   gender: Joi.string().valid('male', 'female', 'other').allow('', null),
   village: Joi.string().max(100).allow('', null),

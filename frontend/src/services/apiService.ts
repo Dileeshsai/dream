@@ -2,8 +2,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://103.127.146.54:3000', // HTTP backend URL
+  baseURL: 'http://localhost:3000', // HTTP backend URL
+  timeout: 10000, // 10 seconds timeout
 });
+
 // Add a request interceptor
 api.interceptors.request.use(
   (config) => {
@@ -19,17 +21,40 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
-// Add a response interceptor for debugging
+// Add a response interceptor for debugging and error handling
 api.interceptors.response.use(
   (response) => {
     console.log('API Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response?.status, error.response?.data, error.config?.url);
+    console.error('API Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method,
+      code: error.code,
+      message: error.message
+    });
+
+    // Enhanced error logging
+    if (error.code === 'ERR_NETWORK') {
+      console.error('Network error - no internet connection');
+    } else if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout');
+    } else if (error.response) {
+      console.error(`Server error ${error.response.status}: ${error.response.statusText}`);
+    } else if (error.request) {
+      console.error('No response received from server');
+    }
+
     return Promise.reject(error);
   }
 );

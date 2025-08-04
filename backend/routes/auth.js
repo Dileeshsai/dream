@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticateJWT } = require('../middlewares/auth');
+const { loginLimiter, registrationLimiter, otpLimiter } = require('../middlewares/rateLimit');
 
 /**
  * @swagger
@@ -35,7 +36,7 @@ const { authenticateJWT } = require('../middlewares/auth');
  *       400:
  *         description: Validation error
  */
-router.post('/register', authController.register);
+router.post('/register', registrationLimiter, authController.register);
 
 /**
  * @swagger
@@ -63,7 +64,7 @@ router.post('/register', authController.register);
  *       400:
  *         description: Invalid credentials
  */
-router.post('/login', authController.login);
+router.post('/login', loginLimiter, authController.login);
 
 /**
  * @swagger
@@ -91,7 +92,7 @@ router.post('/login', authController.login);
  *       400:
  *         description: Invalid OTP
  */
-router.post('/verify-otp', authController.verifyOtp);
+router.post('/verify-otp', otpLimiter, authController.verifyOtp);
 
 /**
  * @swagger
@@ -116,7 +117,7 @@ router.post('/verify-otp', authController.verifyOtp);
  *       400:
  *         description: Invalid request
  */
-router.post('/resend-otp', authController.resendOtp);
+router.post('/resend-otp', otpLimiter, authController.resendOtp);
 
 /**
  * @swagger

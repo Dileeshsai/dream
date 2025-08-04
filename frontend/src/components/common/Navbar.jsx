@@ -96,10 +96,10 @@ const Navbar = () => {
                   photoUrl={photoUrl}
                   size="sm"
                   loading={loading}
-                  alt={user?.name || 'Profile'}
+                  alt={user?.full_name || user?.name || 'Profile'}
                 />
                 <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  {user?.name}
+                  {user?.full_name || user?.name}
                 </span>
               </button>
 

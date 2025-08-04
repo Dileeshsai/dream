@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader, CheckCircle } from 'lucide-react';
 import Captcha from '../common/Captcha';
 import WelcomeHeader from '../welcome/WelcomeHeader';
+import ErrorDisplay from '../common/ErrorDisplay';
 
 const LoginScreen = () => {
   const [formData, setFormData] = useState({
@@ -40,6 +41,101 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Enhanced error handling function
+  const handleLoginError = (error) => {
+    let errorMessage = '';
+    let errorType = 'general';
+    let showRetry = false;
+    let showContactSupport = false;
+
+    // Network and connectivity errors
+    if (error.code === 'ERR_NETWORK' || 
+        error.message.includes('Network Error') ||
+        error.message.includes('ERR_INTERNET_DISCONNECTED')) {
+      errorMessage = 'No internet connection. Please check your network and try again.';
+      errorType = 'network';
+      showRetry = true;
+    }
+    // Timeout errors
+    else if (error.code === 'ECONNABORTED' || 
+             error.message.includes('timeout')) {
+      errorMessage = 'Request timed out. Please check your connection and try again.';
+      errorType = 'timeout';
+      showRetry = true;
+    }
+    // Server errors
+    else if (error.response) {
+      const status = error.response.status;
+      const errorData = error.response.data;
+
+      switch (status) {
+        case 400:
+          errorMessage = errorData?.error || 'Invalid request. Please check your email and password.';
+          errorType = 'validation';
+          break;
+        case 401:
+          errorMessage = 'Invalid email or password. Please try again.';
+          errorType = 'credentials';
+          break;
+        case 403:
+          errorMessage = 'Access denied. Your account may be suspended. Please contact support.';
+          errorType = 'access_denied';
+          showContactSupport = true;
+          break;
+        case 404:
+          errorMessage = 'Server not found. Please check if the service is available.';
+          errorType = 'server_not_found';
+          showRetry = true;
+          break;
+        case 408:
+          errorMessage = 'Request timeout. Please try again.';
+          errorType = 'timeout';
+          showRetry = true;
+          break;
+        case 429:
+          errorMessage = 'Too many login attempts. Please wait a few minutes before trying again.';
+          errorType = 'rate_limit';
+          showRetry = true;
+          break;
+        case 500:
+          errorMessage = 'Server error. Our team has been notified. Please try again later.';
+          errorType = 'server_error';
+          showRetry = true;
+          break;
+        case 502:
+        case 503:
+        case 504:
+          errorMessage = 'Service temporarily unavailable. Please try again in a few minutes.';
+          errorType = 'service_unavailable';
+          showRetry = true;
+          break;
+        default:
+          errorMessage = errorData?.error || 'An unexpected error occurred. Please try again.';
+          errorType = 'unknown';
+          showRetry = true;
+      }
+    }
+    // Request made but no response
+    else if (error.request) {
+      errorMessage = 'No response from server. Please check your connection and try again.';
+      errorType = 'no_response';
+      showRetry = true;
+    }
+    // Other errors
+    else {
+      errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+      errorType = 'unknown';
+      showRetry = true;
+    }
+
+    return {
+      message: errorMessage,
+      type: errorType,
+      showRetry,
+      showContactSupport
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
@@ -70,45 +166,18 @@ const LoginScreen = () => {
           setErrors({ general: result.error || 'Login failed' });
           setIsLoggingIn(false);
         }
-              } catch (error) {
-          setLoginStep('error');
-          setIsLoggingIn(false);
-          
-          let errorMessage = 'Invalid credentials. Please try again.';
-          
-          // Handle different types of errors
-          if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-            errorMessage = 'Network error. Please check your internet connection and try again.';
-          } else if (error.response) {
-            // Server responded with error status
-            const status = error.response.status;
-            const errorData = error.response.data;
-            
-            if (status === 404) {
-              errorMessage = 'Server not found. Please try again later.';
-            } else if (status === 500) {
-              errorMessage = 'Server error. Please try again later.';
-            } else if (status === 503) {
-              errorMessage = 'Service temporarily unavailable. Please try again later.';
-            } else if (status === 401) {
-              errorMessage = 'Invalid credentials. Please check your email and password.';
-            } else if (status === 403) {
-              errorMessage = 'Access denied. Please contact support.';
-            } else if (status === 400) {
-              errorMessage = errorData?.message || 'Invalid request. Please check your input.';
-            } else {
-              errorMessage = errorData?.message || 'An unexpected error occurred.';
-            }
-          } else if (error.request) {
-            // Request was made but no response received
-            errorMessage = 'No response from server. Please try again.';
-          } else {
-            // Something else happened
-            errorMessage = error.message || 'An unexpected error occurred.';
-          }
-          
-          setErrors({ general: errorMessage });
-        }
+      } catch (error) {
+        setLoginStep('error');
+        setIsLoggingIn(false);
+        
+        const errorInfo = handleLoginError(error);
+        setErrors({ 
+          general: errorInfo.message,
+          type: errorInfo.type,
+          showRetry: errorInfo.showRetry,
+          showContactSupport: errorInfo.showContactSupport
+        });
+      }
     }
   };
 
@@ -255,17 +324,22 @@ const LoginScreen = () => {
                 <p className="mt-1 text-sm text-red-600">{errors.captcha}</p>
               )}
 
-                          {/* Form Error */}
-            {errors.form && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center shadow-sm animate-in slide-in-from-top-2">
-                <div className="flex items-center justify-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.form}
-                </div>
-              </div>
-            )}
+            {/* Enhanced Error Display */}
+            <ErrorDisplay
+              error={errors.general}
+              errorType={errors.type}
+              showRetry={errors.showRetry}
+              showContactSupport={errors.showContactSupport}
+              onRetry={() => {
+                setErrors({});
+                setLoginStep('idle');
+                setIsLoggingIn(false);
+              }}
+              onContactSupport={() => {
+                // You can implement contact support functionality here
+                window.open('mailto:support@dreamsociety.com', '_blank');
+              }}
+            />
 
             {/* Loading Progress Bar */}
             {isLoggingIn && (
