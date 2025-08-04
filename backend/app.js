@@ -72,11 +72,14 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
+// Start server
 sequelize.authenticate()
   .then(() => {
     console.log('Database connected');
+    
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`HTTP Server running on port ${PORT}`);
+      console.log(`API available at: http://103.127.146.54:${PORT}`);
     });
   })
   .catch((err) => {
