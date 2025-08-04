@@ -8,9 +8,6 @@ export interface ProfilePhotoResponse {
     fileName?: string;
     profile?: any;
     hasPhoto?: boolean;
-    presignedUrl?: string;
-    expiresIn?: number;
-    originalUrl?: string;
   };
 }
 
@@ -79,8 +76,8 @@ class ProfilePhotoService {
   }
 
   /**
-   * Get current profile photo URL
-   * @returns Promise with photo data
+   * Get profile photo
+   * @returns Promise with profile photo data
    */
   async getProfilePhoto(): Promise<ProfilePhotoResponse> {
     const response = await api.get('/profile-photo');
@@ -88,27 +85,8 @@ class ProfilePhotoService {
   }
 
   /**
-   * Get presigned URL for private photo access
-   * @param expiresIn - Expiration time in seconds (default: 3600)
-   * @returns Promise with presigned URL
-   */
-  async getPresignedUrl(expiresIn: number = 3600): Promise<ProfilePhotoResponse> {
-    const response = await api.get(`/profile-photo/presigned?expiresIn=${expiresIn}`);
-    return response.data;
-  }
-
-  /**
-   * Fix profile photo URL if it's stored as presigned URL
-   * @returns Promise with fix result
-   */
-  async fixProfilePhotoUrl(): Promise<ProfilePhotoResponse> {
-    const response = await api.post('/profile-photo/fix');
-    return response.data;
-  }
-
-  /**
-   * Validate file before upload
-   * @param file - File to validate
+   * Validate file type and size
+   * @param file - The file to validate
    * @returns Validation result
    */
   validateFile(file: File): { valid: boolean; message: string } {
@@ -137,24 +115,30 @@ class ProfilePhotoService {
 
   /**
    * Convert file to base64 for preview
-   * @param file - File to convert
+   * @param file - The file to convert
    * @returns Promise with base64 string
    */
   async fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert file to base64'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
     });
   }
 
   /**
    * Resize image before upload (optional optimization)
-   * @param file - Original file
+   * @param file - The file to resize
    * @param maxWidth - Maximum width
    * @param maxHeight - Maximum height
-   * @param quality - JPEG quality (0-1)
+   * @param quality - Image quality (0-1)
    * @returns Promise with resized file
    */
   async resizeImage(file: File, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.8): Promise<File> {

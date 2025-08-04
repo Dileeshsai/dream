@@ -32,7 +32,7 @@ import {
 } from './MemberCharts';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loadProfilePhoto } = useAuth();
   const { photoUrl, loading: photoLoading } = useProfilePhoto();
   const [stats, setStats] = useState([]);
   const [profileComplete, setProfileComplete] = useState(0);
@@ -79,6 +79,13 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Load profile photo when dashboard mounts
+  useEffect(() => {
+    if (user) {
+      loadProfilePhoto();
+    }
+  }, [user, loadProfilePhoto]);
 
   const getIconComponent = (iconName) => {
     const iconMap = {

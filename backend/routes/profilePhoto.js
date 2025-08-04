@@ -140,7 +140,7 @@ router.put('/update',
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: No profile photo found
+ *         description: Profile photo not found
  *       500:
  *         description: Server error
  */
@@ -153,13 +153,13 @@ router.delete('/delete',
  * @swagger
  * /api/profile-photo:
  *   get:
- *     summary: Get profile photo URL
+ *     summary: Get profile photo
  *     tags: [Profile Photo]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Profile photo URL retrieved successfully
+ *         description: Profile photo retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -167,17 +167,15 @@ router.delete('/delete',
  *               properties:
  *                 success:
  *                   type: boolean
+ *                 message:
+ *                   type: string
  *                 data:
  *                   type: object
  *                   properties:
- *                     photoUrl:
- *                       type: string
- *                       nullable: true
  *                     hasPhoto:
  *                       type: boolean
- *                     profile:
- *                       type: object
- *                       nullable: true
+ *                     photoUrl:
+ *                       type: string
  *       401:
  *         description: Unauthorized
  *       500:
@@ -186,142 +184,6 @@ router.delete('/delete',
 router.get('/', 
   authenticateJWT, 
   profilePhotoController.getProfilePhoto
-);
-
-/**
- * @swagger
- * /api/profile-photo/fix:
- *   post:
- *     summary: Fix profile photo URL if it's stored as presigned URL
- *     tags: [Profile Photo]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Profile photo URL fixed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     photoUrl:
- *                       type: string
- *                       nullable: true
- *                     hasPhoto:
- *                       type: boolean
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
-router.post('/fix', 
-  authenticateJWT, 
-  profilePhotoController.fixProfilePhotoUrl
-);
-
-/**
- * @swagger
- * /api/profile-photo/presigned:
- *   get:
- *     summary: Get presigned URL for private photo access
- *     tags: [Profile Photo]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: expiresIn
- *         schema:
- *           type: integer
- *           default: 3600
- *         description: Expiration time in seconds (default 1 hour)
- *     responses:
- *       200:
- *         description: Presigned URL generated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     presignedUrl:
- *                       type: string
- *                     expiresIn:
- *                       type: integer
- *                     originalUrl:
- *                       type: string
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: No profile photo found
- *       500:
- *         description: Server error
- */
-router.get('/presigned', 
-  authenticateJWT, 
-  profilePhotoController.getPresignedUrl
-);
-
-/**
- * @swagger
- * /api/profile-photo/refresh-url:
- *   post:
- *     summary: Refresh presigned URL for profile photo
- *     tags: [Profile Photo]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               expiresIn:
- *                 type: integer
- *                 default: 3600
- *                 description: Expiration time in seconds (default 1 hour)
- *     responses:
- *       200:
- *         description: Profile photo URL refreshed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     photoUrl:
- *                       type: string
- *                     expiresIn:
- *                       type: integer
- *                     profile:
- *                       type: object
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: No profile photo found
- *       500:
- *         description: Server error
- */
-router.post('/refresh-url', 
-  authenticateJWT, 
-  profilePhotoController.refreshPhotoUrl
 );
 
 module.exports = router; 

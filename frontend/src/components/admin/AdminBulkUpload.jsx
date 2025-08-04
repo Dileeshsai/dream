@@ -77,13 +77,6 @@ const AdminBulkUpload = () => {
             >
               📊 Excel Template (.xlsx)
             </a>
-            <a 
-              href="/bulk-upload-template-guide.md" 
-              target="_blank" 
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              📖 Template Guide
-            </a>
           </div>
           <p className="text-sm text-blue-700 mt-2">
             💡 <strong>Recommended:</strong> Use the Excel template for better formatting and easier data entry.

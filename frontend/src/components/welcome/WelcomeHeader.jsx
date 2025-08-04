@@ -73,7 +73,7 @@ const WelcomeHeader = () => {
         <div className="flex flex-row items-center gap-4 min-w-fit justify-center md:justify-start">
           <div className="flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-cyan-100 rounded-full  border border-blue-200 p-1" style={{width:54,height:54}}>
             <img
-              src="/public/dreamsocietylogo.png"
+              src="/dreamsocietylogo.png"
               alt="UNITY Nest Logo"
               className="w-10 h-10 object-contain rounded-full"
               style={{filter:'drop-shadow(0 2px 8px rgba(37,99,235,0.10))'}}
@@ -139,7 +139,7 @@ const WelcomeHeader = () => {
               <SheetContent side="left" className="p-0 w-64 transition-all duration-300 ease-in-out">
                 <div className="flex flex-col gap-6 p-6">
                   <div className="flex flex-row items-center gap-2 mb-4">
-                    <img src="/public/dreamsocietylogo.png" alt="UNITY Nest Logo" className="w-10 h-10 object-contain" />
+                    <img src="/dreamsocietylogo.png" alt="UNITY Nest Logo" className="w-10 h-10 object-contain" />
                     <span className="font-extrabold text-lg text-black leading-tight">UNITY</span>
                     <span className="font-semibold text-base text-gray-800 leading-tight ml-1">Nest</span>
                   </div>

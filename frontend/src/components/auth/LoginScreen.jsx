@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader, CheckCircle } from 'lucide-react';
 import Captcha from '../common/Captcha';
 import WelcomeHeader from '../welcome/WelcomeHeader';
 
@@ -14,6 +14,8 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [captchaValid, setCaptchaValid] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginStep, setLoginStep] = useState('idle'); // 'idle', 'authenticating', 'success', 'error'
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -42,72 +44,71 @@ const LoginScreen = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const loggedInUser = await login(formData.email, formData.password);
-        if (loggedInUser.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-      } catch (error) {
-        let errorMessage = 'Invalid credentials. Please try again.';
+        setIsLoggingIn(true);
+        setLoginStep('authenticating');
+        setErrors({});
         
-        // Handle different types of errors
-        if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (error.response) {
-          // Server responded with error status
-          const status = error.response.status;
-          const errorData = error.response.data;
+        console.log('LoginScreen: Submitting form with data:', formData);
+        const result = await login(formData);
+        console.log('LoginScreen: Login result:', result);
+        
+        if (result.success) {
+          setLoginStep('success');
+          console.log('LoginScreen: Login successful, navigating to:', result.user?.role === 'admin' ? '/admin/dashboard' : '/dashboard');
           
-          if (status === 404) {
-            errorMessage = 'Server not found. Please try again later.';
-          } else if (status === 500) {
-            errorMessage = 'Server error. Please try again later.';
-          } else if (status === 503) {
-            errorMessage = 'Service temporarily unavailable. Please try again later.';
-          } else if (status === 401) {
-            errorMessage = 'Invalid credentials. Please check your email and password.';
-          } else if (status === 403) {
-            errorMessage = 'Access denied. Please contact support.';
-          } else if (status === 400) {
-            // Check for specific validation errors from backend
-            if (errorData && errorData.error) {
-              if (errorData.error.includes('User not found')) {
-                errorMessage = 'Invalid credentials. Please check your email and password.';
-              } else if (errorData.error.includes('Invalid credentials')) {
-                errorMessage = 'Invalid credentials. Please check your email and password.';
-              } else if (errorData.error.includes('User not verified')) {
-                errorMessage = 'Account not verified. Please check your email for verification link.';
-              } else {
-                errorMessage = errorData.error;
-              }
+          // Show success state briefly before navigation
+          setTimeout(() => {
+            if (result.user?.role === 'admin') {
+              navigate('/admin/dashboard');
             } else {
-              errorMessage = 'Invalid request. Please check your credentials.';
+              navigate('/dashboard');
             }
-          } else if (status >= 400 && status < 500) {
-            errorMessage = 'Invalid request. Please check your credentials.';
-          } else if (status >= 500) {
-            errorMessage = 'Server error. Please try again later.';
-          }
-        } else if (error.request) {
-          // Request was made but no response received
-          errorMessage = 'No response from server. Please check your connection and try again.';
-        } else if (error.message) {
-          // Other error with message
-          if (error.message.includes('timeout')) {
-            errorMessage = 'Request timeout. Please try again.';
-          } else if (error.message.includes('canceled')) {
-            errorMessage = 'Request was canceled. Please try again.';
-          } else if (error.message.includes('Invalid email or password')) {
-            errorMessage = 'Invalid credentials. Please check your email and password.';
-          } else {
-            // Use the actual error message if it's meaningful
-            errorMessage = error.message;
-          }
+          }, 800);
+        } else {
+          setLoginStep('error');
+          console.log('LoginScreen: Login failed with error:', result.error);
+          setErrors({ general: result.error || 'Login failed' });
+          setIsLoggingIn(false);
         }
-        
-        setErrors({ form: errorMessage });
-      }
+              } catch (error) {
+          setLoginStep('error');
+          setIsLoggingIn(false);
+          
+          let errorMessage = 'Invalid credentials. Please try again.';
+          
+          // Handle different types of errors
+          if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+            errorMessage = 'Network error. Please check your internet connection and try again.';
+          } else if (error.response) {
+            // Server responded with error status
+            const status = error.response.status;
+            const errorData = error.response.data;
+            
+            if (status === 404) {
+              errorMessage = 'Server not found. Please try again later.';
+            } else if (status === 500) {
+              errorMessage = 'Server error. Please try again later.';
+            } else if (status === 503) {
+              errorMessage = 'Service temporarily unavailable. Please try again later.';
+            } else if (status === 401) {
+              errorMessage = 'Invalid credentials. Please check your email and password.';
+            } else if (status === 403) {
+              errorMessage = 'Access denied. Please contact support.';
+            } else if (status === 400) {
+              errorMessage = errorData?.message || 'Invalid request. Please check your input.';
+            } else {
+              errorMessage = errorData?.message || 'An unexpected error occurred.';
+            }
+          } else if (error.request) {
+            // Request was made but no response received
+            errorMessage = 'No response from server. Please try again.';
+          } else {
+            // Something else happened
+            errorMessage = error.message || 'An unexpected error occurred.';
+          }
+          
+          setErrors({ general: errorMessage });
+        }
     }
   };
 
@@ -131,6 +132,17 @@ const LoginScreen = () => {
         form: ''
       }));
     }
+    // Reset login state when user starts typing
+    if (isLoggingIn || loginStep !== 'idle') {
+      setIsLoggingIn(false);
+      setLoginStep('idle');
+    }
+  };
+
+  const resetLoginState = () => {
+    setIsLoggingIn(false);
+    setLoginStep('idle');
+    setErrors({});
   };
 
   return (
@@ -147,7 +159,23 @@ const LoginScreen = () => {
            }}>
         <div className="max-w-md w-full relative z-10">
           {/* Form Container */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+          <div className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20 relative transition-all duration-300 ${
+            isLoggingIn ? 'scale-[1.02] shadow-blue-500/20' : ''
+          }`}>
+            {/* Loading Overlay */}
+            {isLoggingIn && (
+              <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+                <div className="text-center">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin mx-auto" style={{ animationDelay: '-0.5s' }}></div>
+                  </div>
+                  <p className="text-gray-600 font-medium" style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}>
+                    Authenticating...
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2" style={{fontFamily: 'Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}>Welcome Back</h2>
               <p className="text-gray-600" style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}>Sign in to your UNITY Nest account</p>
@@ -168,9 +196,10 @@ const LoginScreen = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={isLoggingIn}
                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Enter your email"
                     style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}
                   />
@@ -194,9 +223,10 @@ const LoginScreen = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
+                    disabled={isLoggingIn}
                     className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Enter your password"
                     style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}
                   />
@@ -218,32 +248,71 @@ const LoginScreen = () => {
               </div>
 
               {/* Captcha Field */}
-              <Captcha onValidationChange={setCaptchaValid} />
+              <div className={isLoggingIn ? 'opacity-50 pointer-events-none' : ''}>
+                <Captcha onValidationChange={setCaptchaValid} />
+              </div>
               {errors.captcha && (
                 <p className="mt-1 text-sm text-red-600">{errors.captcha}</p>
               )}
 
-              {/* Form Error */}
-              {errors.form && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center shadow-sm">
-                  <div className="flex items-center justify-center">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {errors.form}
-                  </div>
+                          {/* Form Error */}
+            {errors.form && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center shadow-sm animate-in slide-in-from-top-2">
+                <div className="flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.form}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* Loading Progress Bar */}
+            {isLoggingIn && (
+              <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full animate-pulse" 
+                     style={{
+                       animation: 'loading 2s ease-in-out infinite',
+                       background: 'linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6)',
+                       backgroundSize: '200% 100%'
+                     }}>
+                </div>
+              </div>
+            )}
 
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-600 hover:scale-105 transition-all duration-300 flex items-center justify-center disabled:opacity-50 shadow-lg"
+                disabled={isLoggingIn || loading}
+                className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center shadow-lg ${
+                  loginStep === 'success' 
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white scale-105' 
+                    : loginStep === 'error'
+                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 hover:scale-105'
+                } ${(isLoggingIn || loading) ? 'opacity-75 cursor-not-allowed' : ''}`}
                 style={{fontFamily: 'Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}
               >
-                {loading ? (
-                  <Loader className="w-5 h-5 animate-spin" />
+                {loginStep === 'success' ? (
+                  <>
+                    <CheckCircle className="w-5 h-5 mr-2 animate-pulse" />
+                    Welcome Back!
+                  </>
+                ) : loginStep === 'error' ? (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Try Again
+                  </>
+                ) : isLoggingIn || loading ? (
+                  <>
+                    <div className="relative">
+                      <Loader className="w-5 h-5 animate-spin mr-2" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full animate-pulse"></div>
+                    </div>
+                    Authenticating...
+                  </>
                 ) : (
                   'Sign In'
                 )}

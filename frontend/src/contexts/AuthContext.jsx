@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiPost } from '../services/apiService';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import api from '../services/apiService';
+import profilePhotoService from '../services/profilePhotoService';
 
 const AuthContext = createContext();
 
@@ -13,199 +14,158 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Try to get user from localStorage on initial load
-    const savedUser = localStorage.getItem('dreamSocietyUser');
-    const parsedUser = savedUser ? JSON.parse(savedUser) : null;
-    
-    // If user exists but doesn't have phone field, we'll need to refresh the data
-    if (parsedUser && !parsedUser.phone) {
-      console.log('User data missing phone field, will refresh on next login');
-    }
-    
-    return parsedUser;
-  });
-  const [loading, setLoading] = useState(false);
-  const [pendingRegistration, setPendingRegistration] = useState(() => {
-    // Try to get pending registration from localStorage
-    const saved = localStorage.getItem('pendingRegistration');
-    return saved ? JSON.parse(saved) : null;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [profilePhoto, setProfilePhoto] = useState({
+    url: null,
+    loading: false,
+    error: null,
+    lastLoaded: null
   });
 
-  const login = async (email, password) => {
-    setLoading(true);
-    try {
-      const response = await apiPost('/auth/login', { email, password });
-      const data = response.data;
+  // Load profile photo
+  const loadProfilePhoto = useCallback(async (forceRefresh = false) => {
+    if (!user) return;
 
-      if (!data.token || !data.user) {
-        setLoading(false);
-        throw new Error(data.message || 'Invalid email or password');
+    // Check if we should skip loading (not forced and recently loaded)
+    if (!forceRefresh && profilePhoto.lastLoaded) {
+      const timeSinceLastLoad = Date.now() - profilePhoto.lastLoaded;
+      if (timeSinceLastLoad < 5 * 60 * 1000) { // 5 minutes
+        return;
       }
+    }
 
-      const loggedInUser = {
-        id: data.user.id,
-        name: data.user.full_name,
-        email: data.user.email,
-        phone: data.user.phone,
-        role: data.user.role,
-        token: data.token,
-        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        membershipType: 'premium',
-        profileComplete: 85,
-      };
-
-      setUser(loggedInUser);
-      localStorage.setItem('dreamSocietyUser', JSON.stringify(loggedInUser));
-      localStorage.setItem('token', data.token); // Store JWT for API use
-      setLoading(false);
-      return loggedInUser;
+    try {
+      setProfilePhoto(prev => ({ ...prev, loading: true, error: null }));
+      
+      const response = await profilePhotoService.getProfilePhoto();
+      
+      if (response.success) {
+        setProfilePhoto({
+          url: response.data.photoUrl || null,
+          loading: false,
+          error: null,
+          lastLoaded: Date.now()
+        });
+      } else {
+        setProfilePhoto({
+          url: null,
+          loading: false,
+          error: response.message || 'Failed to load profile photo',
+          lastLoaded: null
+        });
+      }
     } catch (error) {
-      setLoading(false);
-      throw error;
+      console.error('Error loading profile photo:', error);
+      setProfilePhoto({
+        url: null,
+        loading: false,
+        error: error.message || 'Failed to load profile photo',
+        lastLoaded: null
+      });
+    }
+  }, [user]);
+
+  // Update profile photo URL
+  const updateProfilePhoto = useCallback((newUrl) => {
+    setProfilePhoto({
+      url: newUrl,
+      loading: false,
+      error: null,
+      lastLoaded: Date.now()
+    });
+  }, []);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('AuthContext: Checking token:', token ? 'Token exists' : 'No token found');
+        if (token) {
+          console.log('AuthContext: Making /auth/me request with token');
+          const response = await api.get('/auth/me');
+          console.log('AuthContext: /auth/me response:', response.data);
+          setUser(response.data.user);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Monitor user state changes
+  useEffect(() => {
+    console.log('AuthContext: User state changed:', user ? { id: user.id, role: user.role } : null);
+  }, [user]);
+
+  // Don't automatically load profile photo when user changes
+  // Profile photo will be loaded explicitly when needed (e.g., on dashboard)
+
+  const login = async (credentials) => {
+    try {
+      console.log('AuthContext: Attempting login with credentials:', credentials);
+      const response = await api.post('/auth/login', credentials);
+      console.log('AuthContext: Login response:', response.data);
+      const { token, user: userData } = response.data;
+      
+      console.log('AuthContext: Storing token in localStorage');
+      localStorage.setItem('token', token);
+      console.log('AuthContext: Token stored, setting user:', userData);
+      setUser(userData);
+      console.log('AuthContext: User state updated, should trigger re-render');
+      
+      // Reset profile photo state after login
+      setProfilePhoto({ url: null, loading: false, error: null, lastLoaded: null });
+      
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Login failed' 
+      };
     }
   };
 
   const register = async (userData) => {
-    setLoading(true);
     try {
-      console.log('AuthContext: Starting registration process');
-      console.log('AuthContext: User data:', userData);
+      const response = await api.post('/auth/register', userData);
+      const { token, user: newUser } = response.data;
       
-      // Call the backend registration endpoint
-      const response = await apiPost('/auth/register', userData);
-      console.log('AuthContext: Backend registration response:', response.data);
+      localStorage.setItem('token', token);
+      setUser(newUser);
       
-      // Store registration data temporarily for OTP verification
-      const registrationData = {
-        ...userData,
-        userId: response.data.user_id,
-        expiresIn: response.data.expiresIn,
-        timestamp: new Date().toISOString()
-      };
-      
-      setPendingRegistration(registrationData);
-      localStorage.setItem('pendingRegistration', JSON.stringify(registrationData));
-      
-      setLoading(false);
-      console.log('AuthContext: Registration data stored temporarily');
-      return { success: true, data: registrationData };
+      return { success: true };
     } catch (error) {
-      setLoading(false);
-      console.log('AuthContext: Registration error:', error);
-      throw error;
+      console.error('Registration error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Registration failed' 
+      };
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     setUser(null);
-    // Clear user from localStorage
-    localStorage.removeItem('dreamSocietyUser');
-  };
-
-  const updateUser = (updatedUserData) => {
-    const updatedUser = { ...user, ...updatedUserData };
-    setUser(updatedUser);
-    localStorage.setItem('dreamSocietyUser', JSON.stringify(updatedUser));
-  };
-
-  const clearPendingRegistration = () => {
-    setPendingRegistration(null);
-    localStorage.removeItem('pendingRegistration');
-  };
-
-  const resendOTP = async () => {
-    if (!pendingRegistration) {
-      throw new Error('No pending registration found');
-    }
-    
-    try {
-      const response = await apiPost('/auth/resend-otp', {
-        email: pendingRegistration.email
-      });
-      
-      // Update the pending registration with new expiry time
-      const updatedRegistration = {
-        ...pendingRegistration,
-        expiresIn: response.data.expiresIn,
-        timestamp: new Date().toISOString()
-      };
-      
-      setPendingRegistration(updatedRegistration);
-      localStorage.setItem('pendingRegistration', JSON.stringify(updatedRegistration));
-      
-      return response.data;
-    } catch (error) {
-      console.log('AuthContext: Resend OTP error:', error);
-      throw error;
-    }
-  };
-
-    const verifyOTP = async (otp) => {
-    setLoading(true);
-    try {
-      console.log('AuthContext: Verifying OTP');
-      
-      if (!pendingRegistration) {
-        throw new Error('No pending registration found');
-      }
-      
-      // Verify the OTP with the backend using email
-      const verifyResponse = await apiPost('/auth/verify-otp', {
-        email: pendingRegistration.email,
-        otp: otp
-      });
-      console.log('AuthContext: OTP verified:', verifyResponse.data);
-      
-      // Now login the user to get the token
-      const loginResponse = await apiPost('/auth/login', {
-        email: pendingRegistration.email,
-        password: pendingRegistration.password
-      });
-      console.log('AuthContext: User logged in:', loginResponse.data);
-      
-      // Set the user as logged in
-      const loggedInUser = {
-        id: loginResponse.data.user.id,
-        name: loginResponse.data.user.full_name,
-        email: loginResponse.data.user.email,
-        phone: loginResponse.data.user.phone,
-        role: loginResponse.data.user.role,
-        token: loginResponse.data.token,
-        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        membershipType: 'premium',
-        profileComplete: 85,
-      };
-      
-      setUser(loggedInUser);
-      localStorage.setItem('dreamSocietyUser', JSON.stringify(loggedInUser));
-      localStorage.setItem('token', loginResponse.data.token);
-      
-      // Clear pending registration
-      setPendingRegistration(null);
-      localStorage.removeItem('pendingRegistration');
-      
-      setLoading(false);
-      return true;
-    } catch (error) {
-      setLoading(false);
-      console.log('AuthContext: OTP verification error:', error);
-      throw error;
-    }
+    setProfilePhoto({ url: null, loading: false, error: null, lastLoaded: null });
   };
 
   const value = {
     user,
+    loading,
     login,
     register,
     logout,
-    verifyOTP,
-    resendOTP,
-    clearPendingRegistration,
-    updateUser,
-    loading,
-    isAuthenticated: !!user,
-    pendingRegistration
+    profilePhoto,
+    loadProfilePhoto,
+    updateProfilePhoto
   };
 
   return (

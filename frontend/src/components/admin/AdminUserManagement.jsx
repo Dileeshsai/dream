@@ -87,6 +87,10 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
+      const token = localStorage.getItem('token');
+      console.log('Fetching users with token:', token ? 'Token exists' : 'No token');
+      console.log('Current user:', user);
+      
       const params = new URLSearchParams({
         page: page.toString(),
         limit: usersPerPage.toString()
@@ -96,14 +100,24 @@ const AdminUserManagement = () => {
         params.append('search', search);
       }
       
+      console.log('Making API call to:', `/admin/users?${params.toString()}`);
       const response = await apiGet(`/admin/users?${params.toString()}`);
+      console.log('API Response:', response);
+      console.log('Users data:', response.data?.users);
+      console.log('Pagination data:', response.data?.pagination);
+      
       setUsers(response.data?.users || []);
       setTotalPages(response.data?.pagination?.pages || 1);
       setTotalUsers(response.data?.pagination?.total || 0);
       setCurrentPage(response.data?.pagination?.page || 1);
     } catch (error) {
       console.error("Failed to fetch users:", error);
+      console.error("Error response:", error.response);
+      console.error("Error status:", error.response?.status);
+      console.error("Error data:", error.response?.data);
+      
       if (error.code === 'ERR_NETWORK' || error.response?.status === 404) {
+        console.log('Using fallback data due to network error');
         setUsers([
           { id: 1, full_name: 'John Doe', email: 'john@example.com', phone: '+1234567890', role: 'member' },
           { id: 2, full_name: 'Jane Smith', email: 'jane@example.com', phone: '+0987654321', role: 'admin' }
@@ -123,7 +137,7 @@ const AdminUserManagement = () => {
 
   // Replace useEffect to use fetchUsers helper
   useEffect(() => {
-    if (user?.token) {
+    if (user && localStorage.getItem('token')) {
       fetchUsers();
     }
     // eslint-disable-next-line
@@ -131,7 +145,7 @@ const AdminUserManagement = () => {
 
   // Refetch when usersPerPage changes
   useEffect(() => {
-    if (user?.token) {
+    if (user && localStorage.getItem('token')) {
       setCurrentPage(1);
       fetchUsers(1, searchTerm);
     }

@@ -22,6 +22,7 @@ exports.authenticateJWT = async (req, res, next) => {
     // Add user info to request
     req.user = {
       id: user.id,
+      user_id: user.id, // Add this for compatibility with getMe controller
       email: user.email,
       role: user.role,
       full_name: user.full_name

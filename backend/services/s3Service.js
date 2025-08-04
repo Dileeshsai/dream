@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const path = require('path');
 const crypto = require('crypto');
@@ -41,7 +41,15 @@ const s3Client = new S3Client({
   },
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || 'dreamsociety-profile-photos';
+const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || 'unitynest';
+
+// Log S3 configuration for debugging
+console.log('S3 Configuration:', {
+  region: awsRegion,
+  bucketName: BUCKET_NAME,
+  hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+  hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY
+});
 
 class S3Service {
   constructor() {
@@ -61,6 +69,40 @@ class S3Service {
     const randomString = crypto.randomBytes(8).toString('hex');
     const extension = path.extname(originalName);
     return `profile-photos/user-${userId}/${timestamp}-${randomString}${extension}`;
+  }
+
+  /**
+   * Check if an object exists in S3
+   * @param {string} key - S3 object key
+   * @returns {Promise<boolean>} - Whether object exists
+   */
+  async objectExists(key) {
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: this.bucketName,
+        Key: key
+      });
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        console.log(`Object does not exist: ${key}`);
+        return false;
+      }
+      // Don't log 403 errors as they're expected when permissions are limited
+      if (error.$metadata?.httpStatusCode !== 403) {
+        console.error('Error checking if object exists:', error);
+        console.error('Error details:', {
+          name: error.name,
+          code: error.Code,
+          statusCode: error.$metadata?.httpStatusCode,
+          message: error.message,
+          key: key
+        });
+      }
+      // Return false for any error to avoid breaking the flow
+      return false;
+    }
   }
 
   /**
@@ -87,20 +129,35 @@ class S3Service {
         }
       };
 
+      console.log('Uploading to S3:', {
+        bucket: this.bucketName,
+        key: fileName,
+        size: fileBuffer.length,
+        contentType: mimeType
+      });
+
       const command = new PutObjectCommand(uploadParams);
       await this.s3Client.send(command);
 
-      // Store the S3 key instead of presigned URL to keep database column shorter
-      const s3Key = fileName;
+      // Generate direct public URL
+      const publicUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${fileName}`;
+      
+      console.log('Upload successful:', publicUrl);
       
       return {
         success: true,
-        photoUrl: s3Key,
+        photoUrl: publicUrl,
         fileName,
         message: 'Profile photo uploaded successfully'
       };
     } catch (error) {
       console.error('Error uploading to S3:', error);
+      console.error('Upload error details:', {
+        name: error.name,
+        code: error.Code,
+        statusCode: error.$metadata?.httpStatusCode,
+        message: error.message
+      });
       throw new Error(`Failed to upload profile photo: ${error.message}`);
     }
   }
@@ -130,6 +187,8 @@ class S3Service {
         return { success: false, message: 'Invalid photo URL format' };
       }
 
+      console.log('Deleting from S3:', { bucket: this.bucketName, key });
+
       const deleteParams = {
         Bucket: this.bucketName,
         Key: key
@@ -144,58 +203,24 @@ class S3Service {
       };
     } catch (error) {
       console.error('Error deleting from S3:', error);
-      throw new Error(`Failed to delete profile photo: ${error.message}`);
-    }
-  }
-
-  /**
-   * Generate a presigned URL for temporary access to a private object
-   * @param {string} photoUrl - S3 key, full S3 URL, or presigned URL
-   * @param {number} expiresIn - Expiration time in seconds (default: 3600)
-   * @returns {Promise<string>} - Presigned URL
-   */
-  async generatePresignedUrl(photoUrl, expiresIn = 3600) {
-    try {
-      let key;
-      
-      // If it's already a presigned URL, extract the key properly
-      if (photoUrl.includes('?X-Amz-')) {
-        // Extract key from presigned URL by removing query parameters
-        const urlWithoutParams = photoUrl.split('?')[0];
-        // Remove the bucket and region from the URL
-        const urlParts = urlWithoutParams.split('/');
-        // Find the index after the bucket name
-        const bucketIndex = urlParts.findIndex(part => part.includes('s3'));
-        if (bucketIndex !== -1) {
-          key = urlParts.slice(bucketIndex + 1).join('/');
-        } else {
-          // Fallback: try to extract from the end
-          key = urlParts.slice(-2).join('/'); // profile-photos/user-16/filename.jpg
-        }
-      } else if (photoUrl.includes('amazonaws.com/')) {
-        // Direct S3 URL
-        const urlParts = photoUrl.split('.amazonaws.com/');
-        key = urlParts[1];
-      } else if (photoUrl.includes('profile-photos/')) {
-        // S3 key (stored in database) - this is what we want
-        key = photoUrl;
-      } else {
-        throw new Error('Invalid photo URL format');
-      }
-
-      // Clean the key - remove any URL encoding
-      key = decodeURIComponent(key);
-
-      const command = new GetObjectCommand({
-        Bucket: this.bucketName,
-        Key: key
+      console.error('Delete error details:', {
+        name: error.name,
+        code: error.Code,
+        statusCode: error.$metadata?.httpStatusCode,
+        message: error.message
       });
-
-      const presignedUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
-      return presignedUrl;
-    } catch (error) {
-      console.error('Error generating presigned URL:', error);
-      throw new Error(`Failed to generate presigned URL: ${error.message}`);
+      
+      // Check if it's an access denied error
+      if (error.name === 'AccessDenied' || error.Code === 'AccessDenied') {
+        console.warn('Access denied when deleting from S3. This might be due to IAM permissions. Continuing without deletion.');
+        return {
+          success: true, // Changed to true to prevent app crashes
+          message: 'Photo upload successful, but old photo could not be deleted due to permissions. Please contact administrator.',
+          warning: 'Old photo deletion failed due to IAM permissions'
+        };
+      }
+      
+      throw new Error(`Failed to delete profile photo: ${error.message}`);
     }
   }
 
@@ -236,21 +261,6 @@ class S3Service {
     } catch (error) {
       console.error('Error updating profile photo:', error);
       throw new Error(`Failed to update profile photo: ${error.message}`);
-    }
-  }
-
-  /**
-   * Refresh a presigned URL if it's expired or about to expire
-   * @param {string} photoUrl - Current photo URL (presigned or direct)
-   * @param {number} expiresIn - New expiration time in seconds (default: 3600)
-   * @returns {Promise<string>} - New presigned URL
-   */
-  async refreshPresignedUrl(photoUrl, expiresIn = 3600) {
-    try {
-      return await this.generatePresignedUrl(photoUrl, expiresIn);
-    } catch (error) {
-      console.error('Error refreshing presigned URL:', error);
-      throw new Error(`Failed to refresh presigned URL: ${error.message}`);
     }
   }
 

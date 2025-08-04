@@ -1,124 +1,242 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProfilePhoto } from '../../hooks/useProfilePhoto';
-import profilePhotoService from '../../services/profilePhotoService';
 import ProfileImage from '../common/ProfileImage';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { RefreshCw, Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 
 const ProfilePhotoDebug = () => {
-  const { photoUrl, loading, error, refreshPhoto } = useProfilePhoto();
-  const [debugInfo, setDebugInfo] = useState(null);
-  const [isFixing, setIsFixing] = useState(false);
+  const { 
+    photoUrl, 
+    loading, 
+    error, 
+    uploadPhoto, 
+    deletePhoto, 
+    refreshPhoto, 
+    refreshExpiredUrl 
+  } = useProfilePhoto();
+  
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [lastError, setLastError] = useState(null);
+  const [refreshAttempts, setRefreshAttempts] = useState(0);
 
-  const handleFixUrl = async () => {
-    setIsFixing(true);
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadProgress(0);
+    setLastError(null);
+
     try {
-      const response = await profilePhotoService.fixProfilePhotoUrl();
-      setDebugInfo({
-        success: response.success,
-        message: response.message,
-        data: response.data
+      await uploadPhoto(file, (progress) => {
+        setUploadProgress(progress);
       });
-      // Refresh the photo after fixing
-      refreshPhoto();
+      console.log('Upload successful');
     } catch (err) {
-      setDebugInfo({
-        success: false,
-        message: err.message,
-        data: null
-      });
+      console.error('Upload failed:', err);
+      setLastError(err.message);
     } finally {
-      setIsFixing(false);
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
-  const handleGetPhoto = async () => {
+  const handleDelete = async () => {
     try {
-      const response = await profilePhotoService.getProfilePhoto();
-      setDebugInfo({
-        success: response.success,
-        message: 'Get photo response',
-        data: response.data
-      });
+      await deletePhoto();
+      console.log('Delete successful');
     } catch (err) {
-      setDebugInfo({
-        success: false,
-        message: err.message,
-        data: null
-      });
+      console.error('Delete failed:', err);
+      setLastError(err.message);
     }
   };
+
+  const handleRefresh = async () => {
+    try {
+      await refreshPhoto();
+      console.log('Refresh successful');
+    } catch (err) {
+      console.error('Refresh failed:', err);
+      setLastError(err.message);
+    }
+  };
+
+  const handleRefreshExpiredUrl = async () => {
+    try {
+      setRefreshAttempts(prev => prev + 1);
+      const newUrl = await refreshExpiredUrl(photoUrl);
+      if (newUrl) {
+        console.log('URL refresh successful:', newUrl);
+      }
+    } catch (err) {
+      console.error('URL refresh failed:', err);
+      setLastError(err.message);
+    }
+  };
+
+  const handleImageError = async (expiredUrl) => {
+    console.log('Image failed to load, attempting to refresh URL:', expiredUrl);
+    try {
+      const newUrl = await refreshExpiredUrl(expiredUrl);
+      if (newUrl) {
+        console.log('URL refreshed after image error:', newUrl);
+      }
+    } catch (err) {
+      console.error('Failed to refresh URL after image error:', err);
+    }
+  };
+
+  const isPresignedUrl = photoUrl && photoUrl.includes('?X-Amz-');
+  const isExpired = isPresignedUrl && photoUrl.includes('X-Amz-Expires=');
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-2xl mx-auto">
-      <h2 className="text-xl font-bold mb-4">Profile Photo Debug</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <h3 className="font-semibold mb-2">Current State</h3>
-          <div className="space-y-2 text-sm">
-            <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
-            <p><strong>Error:</strong> {error || 'None'}</p>
-            <p><strong>Photo URL:</strong> {photoUrl ? 'Present' : 'None'}</p>
-            {photoUrl && (
-              <p className="text-xs break-all bg-gray-100 p-2 rounded">
-                {photoUrl}
-              </p>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex justify-center">
-          <ProfileImage
-            photoUrl={photoUrl}
-            size="xl"
-            loading={loading}
-            alt="Debug Profile"
-            border={true}
-            borderColor="border-blue-500"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-4 mb-6">
-        <div className="flex space-x-4">
-          <button
-            onClick={handleGetPhoto}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Get Photo
-          </button>
-          <button
-            onClick={handleFixUrl}
-            disabled={isFixing}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-          >
-            {isFixing ? 'Fixing...' : 'Fix URL'}
-          </button>
-          <button
-            onClick={refreshPhoto}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-          >
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      {debugInfo && (
-        <div className="bg-gray-50 p-4 rounded">
-          <h3 className="font-semibold mb-2">Debug Info</h3>
-          <div className="space-y-2 text-sm">
-            <p><strong>Success:</strong> {debugInfo.success ? 'Yes' : 'No'}</p>
-            <p><strong>Message:</strong> {debugInfo.message}</p>
-            {debugInfo.data && (
-              <div>
-                <p><strong>Data:</strong></p>
-                <pre className="text-xs bg-white p-2 rounded border overflow-auto">
-                  {JSON.stringify(debugInfo.data, null, 2)}
-                </pre>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            Profile Photo Debug Panel
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold">Current Status</h3>
+              <div className="text-sm space-y-1">
+                <div className="flex items-center gap-2">
+                  <span>Loading:</span>
+                  {loading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>Has Photo:</span>
+                  {photoUrl ? (
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>URL Type:</span>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    isPresignedUrl ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                  }`}>
+                    {isPresignedUrl ? 'Presigned URL' : 'Direct URL'}
+                  </span>
+                </div>
+                {isPresignedUrl && (
+                  <div className="flex items-center gap-2">
+                    <span>Expiration:</span>
+                    <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
+                      {isExpired ? 'Expired' : 'Valid'}
+                    </span>
+                  </div>
+                )}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold">Debug Info</h3>
+              <div className="text-sm space-y-1">
+                <div>Refresh Attempts: {refreshAttempts}</div>
+                {uploadProgress > 0 && (
+                  <div>Upload Progress: {uploadProgress}%</div>
+                )}
+                {lastError && (
+                  <div className="text-red-600">Last Error: {lastError}</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Image Display */}
+          <div className="flex justify-center">
+            <div className="text-center space-y-4">
+              <ProfileImage
+                photoUrl={photoUrl}
+                size="3xl"
+                alt="Debug Profile"
+                loading={loading}
+                onImageError={handleImageError}
+                className="border-4 border-gray-300"
+              />
+              <div className="text-sm text-gray-600 max-w-md break-all">
+                {photoUrl || 'No photo URL'}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button
+              onClick={() => document.getElementById('file-upload').click()}
+              disabled={uploading}
+              className="flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              {uploading ? `Uploading ${uploadProgress}%` : 'Upload Photo'}
+            </Button>
+            
+            <Button
+              onClick={handleDelete}
+              disabled={!photoUrl || loading}
+              variant="destructive"
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Photo
+            </Button>
+            
+            <Button
+              onClick={handleRefresh}
+              disabled={loading}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Photo
+            </Button>
+            
+            {isPresignedUrl && (
+              <Button
+                onClick={handleRefreshExpiredUrl}
+                disabled={loading}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh URL
+              </Button>
             )}
           </div>
-        </div>
-      )}
+
+          {/* Hidden file input */}
+          <input
+            id="file-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-semibold">Error:</span>
+              </div>
+              <p className="text-red-700 mt-1">{error}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

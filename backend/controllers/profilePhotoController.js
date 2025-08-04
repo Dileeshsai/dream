@@ -16,6 +16,13 @@ exports.uploadProfilePhoto = async (req, res, next) => {
     const userId = req.user.id;
     const file = req.file;
 
+    console.log('Profile photo upload request:', {
+      userId,
+      fileName: file.originalname,
+      fileSize: file.size,
+      mimeType: file.mimetype
+    });
+
     // Validate file using S3 service
     const validation = s3Service.validateFile(file);
     if (!validation.valid) {
@@ -28,6 +35,7 @@ exports.uploadProfilePhoto = async (req, res, next) => {
 
     if (profile && profile.photo_url) {
       oldPhotoUrl = profile.photo_url;
+      console.log('Found existing photo URL:', oldPhotoUrl);
     }
 
     // Upload to S3
@@ -42,38 +50,44 @@ exports.uploadProfilePhoto = async (req, res, next) => {
     if (oldPhotoUrl) {
       try {
         await s3Service.deleteProfilePhoto(oldPhotoUrl);
+        console.log('Old photo deleted successfully');
       } catch (deleteError) {
         console.warn('Failed to delete old photo:', deleteError.message);
         // Don't fail the upload if deletion fails
       }
     }
 
-    // Update profile with new photo URL (S3 key)
+    // Update profile with new photo URL (direct S3 URL)
     if (profile) {
       profile.photo_url = uploadResult.photoUrl;
       await profile.save();
+      console.log('Profile updated with new photo URL:', uploadResult.photoUrl);
     } else {
       // Create new profile if it doesn't exist
       profile = await Profile.create({
         user_id: userId,
         photo_url: uploadResult.photoUrl
       });
+      console.log('New profile created with photo URL:', uploadResult.photoUrl);
     }
 
-    // Generate presigned URL for immediate access
-    const presignedUrl = await s3Service.generatePresignedUrl(uploadResult.photoUrl, 3600);
+    console.log('Upload completed successfully:', {
+      userId,
+      photoUrl: uploadResult.photoUrl
+    });
 
     res.status(200).json({
       success: true,
       message: 'Profile photo uploaded successfully',
       data: {
-        photoUrl: presignedUrl,
+        photoUrl: uploadResult.photoUrl,
         fileName: uploadResult.fileName,
         profile: profile
       }
     });
 
   } catch (error) {
+    console.error('Profile photo upload error:', error);
     next(error);
   }
 };
@@ -92,6 +106,13 @@ exports.updateProfilePhoto = async (req, res, next) => {
     const userId = req.user.id;
     const file = req.file;
 
+    console.log('Profile photo update request:', {
+      userId,
+      fileName: file.originalname,
+      fileSize: file.size,
+      mimeType: file.mimetype
+    });
+
     // Validate file
     const validation = s3Service.validateFile(file);
     if (!validation.valid) {
@@ -105,6 +126,7 @@ exports.updateProfilePhoto = async (req, res, next) => {
     }
 
     const oldPhotoUrl = profile.photo_url;
+    console.log('Current photo URL:', oldPhotoUrl);
 
     // Update photo in S3
     const updateResult = await s3Service.updateProfilePhoto(
@@ -115,24 +137,23 @@ exports.updateProfilePhoto = async (req, res, next) => {
       oldPhotoUrl
     );
 
-    // Update profile with new photo URL (S3 key)
+    // Update profile with new photo URL (direct S3 URL)
     profile.photo_url = updateResult.photoUrl;
     await profile.save();
-
-    // Generate presigned URL for immediate access
-    const presignedUrl = await s3Service.generatePresignedUrl(updateResult.photoUrl, 3600);
+    console.log('Profile updated with new photo URL:', updateResult.photoUrl);
 
     res.status(200).json({
       success: true,
       message: 'Profile photo updated successfully',
       data: {
-        photoUrl: presignedUrl,
+        photoUrl: updateResult.photoUrl,
         fileName: updateResult.fileName,
         profile: profile
       }
     });
 
   } catch (error) {
+    console.error('Profile photo update error:', error);
     next(error);
   }
 };
@@ -146,6 +167,8 @@ exports.deleteProfilePhoto = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    console.log('Profile photo delete request:', { userId });
+
     // Get current profile
     const profile = await Profile.findOne({ where: { user_id: userId } });
     if (!profile || !profile.photo_url) {
@@ -153,13 +176,16 @@ exports.deleteProfilePhoto = async (req, res, next) => {
     }
 
     const photoUrl = profile.photo_url;
+    console.log('Deleting photo URL:', photoUrl);
 
     // Delete from S3
-    const deleteResult = await s3Service.deleteProfilePhoto(photoUrl);
+    await s3Service.deleteProfilePhoto(photoUrl);
 
-    // Update profile to remove photo URL
+    // Remove photo URL from profile
     profile.photo_url = null;
     await profile.save();
+
+    console.log('Profile photo deleted successfully');
 
     res.status(200).json({
       success: true,
@@ -170,12 +196,13 @@ exports.deleteProfilePhoto = async (req, res, next) => {
     });
 
   } catch (error) {
+    console.error('Profile photo delete error:', error);
     next(error);
   }
 };
 
 /**
- * Get profile photo URL
+ * Get profile photo
  * @route GET /api/profile-photo
  * @access Private
  */
@@ -183,194 +210,35 @@ exports.getProfilePhoto = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    console.log('Profile photo get request:', { userId });
+
     // Get profile
     const profile = await Profile.findOne({ where: { user_id: userId } });
+    
     if (!profile || !profile.photo_url) {
       return res.status(200).json({
         success: true,
+        message: 'No profile photo found',
         data: {
-          photoUrl: null,
-          hasPhoto: false
+          hasPhoto: false,
+          photoUrl: null
         }
       });
     }
 
-    // Generate presigned URL for the stored S3 key
-    const presignedUrl = await s3Service.generatePresignedUrl(profile.photo_url, 3600);
+    console.log('Profile photo found:', profile.photo_url);
 
     res.status(200).json({
       success: true,
+      message: 'Profile photo retrieved successfully',
       data: {
-        photoUrl: presignedUrl,
         hasPhoto: true,
-        profile: profile
+        photoUrl: profile.photo_url
       }
     });
 
   } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Get presigned URL for private photo access (if needed)
- * @route GET /api/profile-photo/presigned
- * @access Private
- */
-exports.getPresignedUrl = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { expiresIn = 3600 } = req.query; // Default 1 hour
-
-    // Get profile
-    const profile = await Profile.findOne({ where: { user_id: userId } });
-    if (!profile || !profile.photo_url) {
-      throw new NotFoundError('No profile photo found');
-    }
-
-    // Generate presigned URL
-    const presignedUrl = await s3Service.generatePresignedUrl(profile.photo_url, parseInt(expiresIn));
-
-    res.status(200).json({
-      success: true,
-      data: {
-        presignedUrl,
-        expiresIn: parseInt(expiresIn),
-        originalUrl: profile.photo_url
-      }
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Fix current user's profile photo URL (if it's stored as presigned URL)
- * @route POST /api/profile-photo/fix
- * @access Private
- */
-exports.fixProfilePhotoUrl = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-
-    // Get profile
-    const profile = await Profile.findOne({ where: { user_id: userId } });
-    if (!profile || !profile.photo_url) {
-      return res.status(200).json({
-        success: true,
-        message: 'No profile photo to fix',
-        data: { photoUrl: null, hasPhoto: false }
-      });
-    }
-
-    const currentUrl = profile.photo_url;
-    let fixed = false;
-
-    // Check if it's already a presigned URL
-    if (currentUrl.includes('?X-Amz-')) {
-      // Extract the S3 key from the presigned URL
-      const urlWithoutParams = currentUrl.split('?')[0];
-      const urlParts = urlWithoutParams.split('/');
-      
-      // Find the index after the bucket name
-      const bucketIndex = urlParts.findIndex(part => part.includes('s3'));
-      let key;
-      
-      if (bucketIndex !== -1) {
-        key = urlParts.slice(bucketIndex + 1).join('/');
-      } else {
-        // Fallback: try to extract from the end
-        key = urlParts.slice(-2).join('/'); // profile-photos/user-16/filename.jpg
-      }
-      
-      // Clean the key - remove any URL encoding
-      key = decodeURIComponent(key);
-      
-      // Verify the key exists in S3
-      try {
-        // Try to generate a new presigned URL to verify the key is valid
-        await s3Service.generatePresignedUrl(key, 3600);
-        
-        // Update the database with the clean S3 key
-        profile.photo_url = key;
-        await profile.save();
-        
-        fixed = true;
-      } catch (s3Error) {
-        // Remove the invalid URL
-        profile.photo_url = null;
-        await profile.save();
-        
-        return res.status(200).json({
-          success: true,
-          message: 'Invalid photo URL removed',
-          data: { photoUrl: null, hasPhoto: false }
-        });
-      }
-    } else if (currentUrl.includes('amazonaws.com/') && !currentUrl.includes('?X-Amz-')) {
-      // Direct S3 URL - extract key
-      const urlParts = currentUrl.split('.amazonaws.com/');
-      const key = urlParts[1];
-      
-      // Update the database with the S3 key
-      profile.photo_url = key;
-      await profile.save();
-      
-      fixed = true;
-    }
-
-    // Generate new presigned URL
-    const presignedUrl = await s3Service.generatePresignedUrl(profile.photo_url, 3600);
-
-    res.status(200).json({
-      success: true,
-      message: fixed ? 'Profile photo URL fixed successfully' : 'Profile photo URL is already correct',
-      data: {
-        photoUrl: presignedUrl,
-        hasPhoto: true,
-        profile: profile
-      }
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Refresh presigned URL for profile photo
- * @route POST /api/profile-photo/refresh-url
- * @access Private
- */
-exports.refreshPhotoUrl = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { expiresIn = 3600 } = req.body; // Default 1 hour
-
-    // Get profile
-    const profile = await Profile.findOne({ where: { user_id: userId } });
-    if (!profile || !profile.photo_url) {
-      throw new NotFoundError('No profile photo found');
-    }
-
-    // Refresh presigned URL (profile.photo_url contains the S3 key)
-    const newPresignedUrl = await s3Service.refreshPresignedUrl(profile.photo_url, parseInt(expiresIn));
-
-    // Note: We don't update the profile with the presigned URL since it expires
-    // The profile keeps the S3 key, and we return the fresh presigned URL
-
-    res.status(200).json({
-      success: true,
-      message: 'Profile photo URL refreshed successfully',
-      data: {
-        photoUrl: newPresignedUrl,
-        expiresIn: parseInt(expiresIn),
-        profile: profile
-      }
-    });
-
-  } catch (error) {
+    console.error('Profile photo get error:', error);
     next(error);
   }
 }; 

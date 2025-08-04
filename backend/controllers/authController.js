@@ -123,4 +123,23 @@ exports.getTokenInfo = async (req, res, next) => {
       impersonated_at: req.user.impersonated_at || null
     });
   } catch (err) { next(err); }
+};
+
+exports.getMe = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.user_id);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    
+    res.json({
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (err) { next(err); }
 }; 

@@ -13,7 +13,8 @@ const RegisterScreen = () => {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    acceptTerms: false
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -82,6 +83,10 @@ const RegisterScreen = () => {
     
     if (!captchaValid) {
       newErrors.captcha = 'Please complete the security verification';
+    }
+
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = 'You must accept the Terms and Conditions to continue';
     }
     
     setErrors(newErrors);
@@ -180,10 +185,10 @@ const RegisterScreen = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
     // Clear field error when user starts typing
     if (errors[name]) {
@@ -199,6 +204,12 @@ const RegisterScreen = () => {
         submit: ''
       }));
     }
+  };
+
+  const handleTermsClick = (e) => {
+    e.preventDefault();
+    // Open PDF in a new tab without download
+    window.open('/DREAMS_Terms_Conditions.pdf', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -380,6 +391,34 @@ const RegisterScreen = () => {
               {errors.captcha && (
                 <p className="mt-1 text-sm text-red-600">{errors.captcha}</p>
               )}
+
+              {/* Terms and Conditions Checkbox */}
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  name="acceptTerms"
+                  checked={formData.acceptTerms}
+                  onChange={handleChange}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <label className="text-sm text-gray-700" style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}>
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={handleTermsClick}
+                      className="text-blue-600 hover:text-blue-700 underline font-medium"
+                      style={{fontFamily: 'Quicksand, Montserrat, Inter, Plus Jakarta Sans, sans-serif'}}
+                    >
+                      Terms and Conditions
+                    </button>
+                    {' '}of UNITY Nest
+                  </label>
+                  {errors.acceptTerms && (
+                    <p className="mt-1 text-sm text-red-600">{errors.acceptTerms}</p>
+                  )}
+                </div>
+              </div>
 
               {/* Submit Button */}
               <button

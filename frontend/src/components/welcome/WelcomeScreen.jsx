@@ -370,7 +370,7 @@ const WelcomeScreen = () => {
                   <div className="space-y-6">
                     <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                       <div className="flex items-center gap-3">
-                        <img src="/public/dreamsocietylogo.png" alt="User" className="w-10 h-10 " />
+                        <img src="/dreamsocietylogo.png" alt="User" className="w-10 h-10 " />
                         <div>
                           <div className="font-semibold text-sky-800">Priya Sharma</div>
                           <div className="text-xs text-sky-500">2 mins ago</div>
@@ -381,7 +381,7 @@ const WelcomeScreen = () => {
                     </div>
                     <div className="bg-white rounded-2xl p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                       <div className="flex items-center gap-3">
-                        <img src="/public/dreamsocietylogo.png" alt="User" className="w-10 h-10 rounded-full border-2 border-blue-300 animate-float" />
+                        <img src="/dreamsocietylogo.png" alt="User" className="w-10 h-10 rounded-full border-2 border-blue-300 animate-float" />
                         <div>
                           <div className="font-semibold text-sky-800">Rahul Verma</div>
                           <div className="text-xs text-sky-500">10 mins ago</div>

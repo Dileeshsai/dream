@@ -23,7 +23,6 @@ app.use(cors({
 }));
 app.use(morgan('dev'));
 app.use(express.json());
-
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

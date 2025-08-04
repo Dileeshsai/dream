@@ -151,15 +151,40 @@ const About = () => {
           </div>
         </section>
 
-        <section className="w-full flex justify-center py-12" style={{ background: 'linear-gradient(90deg, #eaf8ee 0%, #e0f2f1 100%)', minHeight: '340px', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-          <div className="flex flex-row items-center justify-center animate-fade-slideup" style={{ width: '80vw', maxWidth: '1200px', minHeight: '260px', borderRadius: '12px', height: '100%', background: 'rgba(255,255,255,0.7)', boxShadow: '0 4px 24px 0 rgba(56,96,106,0.08)', padding: '32px 0' }}>
-            {/* Left: Image */}
-            {/* Right: Text */}
-            <div className="flex flex-col items-center justify-center text-center px-6" style={{ width: '68%', minWidth: '320px', minHeight: '220px' }}>
-              <div className="text-4xl md:text-4xl font-extrabold mb-4" style={{ color: '#222', letterSpacing: '1px', fontFamily: 'inherit' }}>OUR HISTORY</div>
-              <div className="text-base md:text-lg font-medium" style={{ color: '#222', lineHeight: '1.7', maxWidth: '700px', fontFamily: 'inherit' }}>
-                UNITY Nest was established with a vision to create a platform for marginalized communities to connect, learn, and grow together. Over the years, our society has empowered countless individuals by providing access to education, economic opportunities, and a supportive network. <br /><br />
-                Our journey began with a small group of passionate individuals who believed in the power of unity and collective progress. Today, we continue to build on this legacy, fostering an environment where every member can realize their full potential and contribute to a brighter, more equitable future.
+        {/* Combined History & About Section */}
+        <section className="w-full flex justify-center py-12" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%)', minHeight: '380px', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div className="flex flex-row items-center justify-center animate-fade-slideup" style={{ width: '80vw', maxWidth: '1200px', minHeight: '300px', borderRadius: '12px', height: '100%', background: 'rgba(255,255,255,0.8)', boxShadow: '0 8px 32px 0 rgba(56,96,106,0.12)', padding: '32px 0' }}>
+            {/* Left: Text Content */}
+            <div className="flex flex-col items-start justify-center px-8" style={{ width: '65%', minWidth: '400px', minHeight: '260px' }}>
+              <div className="text-3xl md:text-3xl font-extrabold mb-4" style={{ color: '#1e40af', letterSpacing: '0.5px', fontFamily: 'inherit' }}>Our History</div>
+                              <div className="text-base md:text-lg font-medium" style={{ color: '#374151', lineHeight: '1.7', maxWidth: '650px', fontFamily: 'inherit', textAlign: 'left' }}>
+                  <p className="mb-3">
+                    <strong>DREAMS (Dalit Resource for Education and Economic Advancement and Mobilisation) is a registered non-profit society</strong> that began with a vision to create a comprehensive platform for marginalized communities to connect, learn, and grow together.
+                  </p>
+                  <p className="mb-3">
+                    Our Unity Nest platform serves as a comprehensive ecosystem for community empowerment, providing educational resources, economic advancement through job portals, community mobilization, and transparent data sharing for mutual growth.
+                  </p>
+                  <p className="mb-3">
+                    <strong>Data Protection & Privacy:</strong> We collect and process personal data (identification, demographic, transaction, and communication data) to provide our services, maintain records, and enable community networking. We implement SSL encryption, access controls, and comply with GDPR and IT Act, 2000 (India).
+                  </p>
+                  <p className="mb-3">
+                    <strong>Your Rights:</strong> You have the right to access, correct, or delete your data, withdraw consent, and lodge complaints. Contact us at <strong>dreams.society2025@gmail.com</strong> for any privacy-related concerns.
+                  </p>
+                </div>
+            </div>
+            {/* Right: Decorative Element */}
+            <div className="flex items-center justify-center relative" style={{ width: '35%', minWidth: '250px', minHeight: '260px', padding: '20px' }}>
+              {/* Decorative Gradient Ring */}
+              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '220px', height: '220px', zIndex: 0, borderRadius: '50%', background: 'radial-gradient(circle, #dbeafe 0%, #dcfce7 60%, transparent 100%)', filter: 'blur(10px)', opacity: 0.6 }}></div>
+              {/* Icon or Symbol */}
+              <div style={{ position: 'relative', zIndex: 1, width: '160px', height: '160px', background: 'linear-gradient(135deg, #3b82f6 0%, #10b981 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 24px 0 rgba(59,130,246,0.3)' }}>
+                <svg width="64" height="64" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="40" cy="40" r="35" fill="white" opacity="0.9"/>
+                  <path d="M25 40a15 15 0 0 1 30 0" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round"/>
+                  <circle cx="40" cy="40" r="6" fill="#3b82f6"/>
+                  <path d="M40 25v30" stroke="#10b981" strokeWidth="3" strokeLinecap="round"/>
+                  <path d="M25 40h30" stroke="#10b981" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
               </div>
             </div>
           </div>

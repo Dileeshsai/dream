@@ -4,16 +4,18 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'http://localhost:3000', // or your backend URL
 });
-
 // Add a request interceptor
 api.interceptors.request.use(
   (config) => {
-    const user = localStorage.getItem('dreamSocietyUser');
-    const token = user ? JSON.parse(user).token : null;
+    const token = localStorage.getItem('token');
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     console.log('Token available:', !!token);
+    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+      console.log('Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
+    } else {
+      console.log('No token found, request will be made without authorization');
     }
     return config;
   },
