@@ -658,8 +658,29 @@ const ProfileManagement = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <nav className="space-y-2">
+            <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6">
+              {/* Mobile Tab Navigation */}
+              <div className="lg:hidden mb-6">
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        activeTab === tab.id
+                          ? 'bg-white text-blue-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <tab.icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{tab.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Sidebar Navigation */}
+              <nav className="hidden lg:block space-y-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}

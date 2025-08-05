@@ -12,30 +12,30 @@ const Society = () => {
       <WelcomeHeader />
 
       {/* Main Content - Society Section */}
-      <div className="flex flex-col min-h-screen ">
-        <section className="w-full flex justify-center py-8 md:py-12 bg-white px-4">
+      <div className="flex flex-col min-h-screen">
+        <section className="w-full flex justify-center py-6 sm:py-8 md:py-12 bg-white px-4">
           <div className="w-full max-w-5xl flex flex-col items-center">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#22505a] mb-8 md:mb-12 text-center">Discover Your Role in Dream Society</h2>
-            <ScrollTimelineSteps />
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#22505a] mb-6 sm:mb-8 md:mb-12 text-center px-4">Discover Your Role in Dream Society</h2>
+            <ScrollTimelieps />
           </div>
         </section>
 
-        <section className="w-full flex justify-center items-center py-8 md:py-12 bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-        <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-stretch justify-between gap-6 md:gap-8">
+        <section className="w-full flex justify-center items-center py-6 sm:py-8 md:py-12 bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
+        <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-stretch justify-between gap-4 sm:gap-6 md:gap-8">
           {/* Left: Purpose and Aspirations */}
-          <div className="flex-1 flex items-center justify-center md:justify-start mb-6 md:mb-0">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 text-center md:text-left leading-tight">Purpose and<br/>Aspirations</h2>
+          <div className="flex-1 flex items-center justify-center md:justify-start mb-4 sm:mb-6 md:mb-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 text-center md:text-left leading-tight">Purpose and<br/>Aspirations</h2>
           </div>
           {/* Center: Aim */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center">
-            <h3 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Aim</h3>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Aim</h3>
             <p className="text-sm md:text-base lg:text-lg text-gray-800 max-w-md text-center md:text-left">
               To create a unified digital platform that empowers individuals and families within the community by facilitating networking, professional growth, and access to opportunities, while preserving and celebrating cultural heritage.
             </p>
           </div>
           {/* Right: Objectives */}
           <div className="flex-1 flex flex-col items-center md:items-start justify-center">
-            <h3 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Objectives</h3>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-gray-900 text-center md:text-left">Objectives</h3>
             <ul className="list-disc pl-5 text-sm md:text-base lg:text-lg text-gray-800 max-w-md text-center md:text-left">
               <li className="mb-2">Foster meaningful connections among members to build a supportive and collaborative community. Lize volunteers to actively participate in community service</li>
               <li>Ensure a safe, inclusive, and user-friendly platform where all members are respected and their data is protected.</li>
@@ -45,10 +45,10 @@ const Society = () => {
       </section>
 
         {/* Events & Feed Section - Clean Modern Style */}
-            <section className="w-full px-4 md:px-0 bg-white animate-fade-in-up py-8 md:py-12" style={{ animationDelay: '0.3s' }}>
-              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            <section className="w-full px-4 md:px-0 bg-white animate-fade-in-up py-6 sm:py-8 md:py-12" style={{ animationDelay: '0.3s' }}>
+              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Upcoming Events</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Upcoming Events</h2>
                   <div className="space-y-4 md:space-y-6">
                     <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                       <div className="flex items-center gap-3 mb-2">
@@ -56,7 +56,7 @@ const Society = () => {
                         <span className="font-semibold text-sky-700 text-sm md:text-base">Virtual Networking Night</span>
                       </div>
                       <div className="text-sky-700 text-sm md:text-base">Connect with professionals and mentors in a fun, interactive online event.</div>
-                      <Button size="sm" className="mt-2 bg-gradient-to-r from-sky-400 to-blue-400 text-white animate-gradient-x">Join</Button>
+                      <Button size="sm" className="mt-2 bg-gradient-to-r from-sky-400 to-blue-400 text-white animate-gradient-x">Register</Button>
                     </div>
                     <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-2 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                       <div className="flex items-center gap-3 mb-2">
@@ -69,7 +69,7 @@ const Society = () => {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Latest from the Community</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 md:mb-6 text-sky-800 drop-shadow">Latest from the Community</h2>
                   <div className="space-y-4 md:space-y-6">
                     <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                       <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ const Society = () => {
                           <div className="text-xs text-sky-500">2 mins ago</div>
                         </div>
                       </div>
-                      <div className="text-sky-700 text-sm md:text-base">Excited to join UNITY Nest! Looking forward to connecting with like-minded professionals. 🚀</div>
+                      <div className="text-sky-700 text-sm md:text-base">Excited to join UNITY ! Looking forward to connecting with like-minded professionals. 🚀</div>
                       <a href="#" className="text-sky-500 hover:underline text-xs md:text-sm mt-2">See more</a>
                     </div>
                     <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl border border-sky-100 flex flex-col gap-4 transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -90,7 +90,7 @@ const Society = () => {
                           <div className="text-xs text-sky-500">10 mins ago</div>
                         </div>
                       </div>
-                      <div className="text-sky-700 text-sm md:text-base">Just landed a new job through UNITY Nest! The community support here is amazing. 🙌</div>
+                      <div className="text-sky-700 text-sm md:text-base">Just landed a new job through UNITY ! The community support here is amazing. 🙌</div>
                       <a href="#" className="text-sky-500 hover:underline text-xs md:text-sm mt-2">See more</a>
                     </div>
                   </div>
@@ -99,15 +99,30 @@ const Society = () => {
             </section>
         {/* Footer */}
         <footer className="w-full bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
-            <div className="text-center md:text-left mb-4 md:mb-0">
-              <div className="text-base md:text-lg font-bold text-sky-800">UNITY Nest</div>
-              <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
-            </div>
-            <div className="flex gap-4 md:gap-6">
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
+              <div className="text-center md:text-left mb-4 md:mb-0">
+                <div className="text-base md:text-lg font-bold text-sky-800">UNITY </div>
+                <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
+              </div>
+              
+              {/* Navigation Links */}
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-4 md:mb-0">
+                <div className="flex gap-4 md:gap-6">
+                  <Link to="/policy" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                    Privacy Policy
+                  </Link>
+                  <Link to="/terms" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                    Terms & Conditions
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 md:gap-6">
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+              </div>
             </div>
           </div>
         </footer>
@@ -169,7 +184,7 @@ const steps = [
   },
 ];
 
-function ScrollTimelineSteps() {
+function ScrollTimelieps() {
   const containerRef = useRef(null);
   const [activeStep, setActiveStep] = useState(0);
   const [ballY, setBallY] = useState(0);

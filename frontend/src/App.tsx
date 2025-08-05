@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
+import { MobileProvider } from './contexts/MobileContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFound from "./pages/NotFound";
 import WelcomeScreen from './components/welcome/WelcomeScreen';
@@ -31,6 +32,8 @@ import AdminBulkUpload from "./components/admin/AdminBulkUpload";
 import About from './components/welcome/About';
 import Society from './components/welcome/Society';
 import Contact from './components/welcome/Contact';
+import Policy from './components/welcome/Policy';
+import TermsAndConditions from './components/welcome/TermsAndConditions';
 
 const queryClient = new QueryClient();
 
@@ -40,45 +43,49 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Routes without Navbar */}
-            <Route path="/" element={<WelcomeScreen />} />
-            <Route path="/login" element={<LoginScreen />} />
-            <Route path="/register" element={<RegisterScreen />} />
-            <Route path="/verify-otp" element={<OTPVerification />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/society" element={<Society />} />
-            <Route path="/contact" element={<Contact />} />
+        <MobileProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Routes without Navbar */}
+              <Route path="/" element={<WelcomeScreen />} />
+              <Route path="/login" element={<LoginScreen />} />
+              <Route path="/register" element={<RegisterScreen />} />
+              <Route path="/verify-otp" element={<OTPVerification />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/society" element={<Society />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/policy" element={<Policy />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
 
-            {/* Member routes with MainLayout (navbar) */}
-            <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<ProfileManagement />} />
-              <Route path="/jobs" element={<JobPortal />} />
-              <Route path="/jobs/:id" element={<JobDetails />} />
-              <Route path="/post-job" element={<PostJob />} />
-              <Route path="/network" element={<Network />} />
-              <Route path="/profile/:id" element={<MemberProfile />} />
-              <Route path="/membership" element={<MembershipPlans />} />
-            </Route>
+              {/* Member routes with MainLayout (navbar) */}
+              <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<ProfileManagement />} />
+                <Route path="/jobs" element={<JobPortal />} />
+                <Route path="/jobs/:id" element={<JobDetails />} />
+                <Route path="/post-job" element={<PostJob />} />
+                <Route path="/network" element={<Network />} />
+                <Route path="/profile/:id" element={<MemberProfile />} />
+                <Route path="/membership" element={<MembershipPlans />} />
+              </Route>
 
-            {/* Admin routes with AdminLayout (sidebar) */}
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUserManagement />} />
-              <Route path="jobs" element={<AdminJobManagement />} />
-              <Route path="bulk-upload" element={<AdminBulkUpload />} />
+              {/* Admin routes with AdminLayout (sidebar) */}
+              <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUserManagement />} />
+                <Route path="jobs" element={<AdminJobManagement />} />
+                <Route path="bulk-upload" element={<AdminBulkUpload />} />
 
-            </Route>
-            
-            {/* Other routes that might need their own layout */}
-            <Route path="/payment" element={<PaymentFlow />} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              </Route>
+              
+              {/* Other routes that might need their own layout */}
+              <Route path="/payment" element={<PaymentFlow />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </MobileProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

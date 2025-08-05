@@ -49,17 +49,17 @@ const WelcomeScreen = () => {
                       {/* Content Section */}
                       <div className="flex flex-col justify-center items-start px-4 md:px-12 py-6 md:py-10 md:w-1/2 w-full relative z-10" style={{background: 'transparent', minHeight: '100%'}}>
                         <div className="flex items-center mb-3 md:mb-4">
-                          <span className="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 via-white-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
-                            <Users className="w-5 h-5 md:w-7 md:h-7 text-white drop-shadow" />
+                          <span className="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-blue-500 via-white-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
+                            <Users className="w-4 h-4 md:w-5 md:h-5 lg:w-7 lg:h-7 text-white drop-shadow" />
                           </span>
                           <span className="uppercase text-xs font-bold tracking-widest text-blue-500">Unity</span>
                         </div>
-                        <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-blue-900 mb-6 md:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Empowering a brighter future together"</blockquote>
-                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-2xl shadow-xl transition-all text-base md:text-lg tracking-wide">Get Inspired</button></Link>
+                        <blockquote className="font-serif text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-blue-900 mb-4 md:mb-6 lg:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Empowering a brighter future together"</blockquote>
+                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-4 md:px-6 lg:px-8 py-2 md:py-2.5 lg:py-3 rounded-2xl shadow-xl transition-all text-sm md:text-base lg:text-lg tracking-wide">Get Inspired</button></Link>
                       </div>
                       {/* Image Section */}
                       <div className="relative flex-1 h-full flex items-center justify-center">
-                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[85%] md:w-[90%] h-[85%] md:h-[90%] max-w-[85%] md:max-w-[90%] max-h-[85%] md:max-h-[90%]" style={{maxWidth:'85%',maxHeight:'85%'}}>
+                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[80%] md:w-[85%] lg:w-[90%] h-[80%] md:h-[85%] lg:h-[90%] max-w-[80%] md:max-w-[85%] lg:max-w-[90%] max-h-[80%] md:max-h-[85%] lg:max-h-[90%]" style={{maxWidth:'80%',maxHeight:'80%'}}>
                           <defs>
                             <clipPath id="carouselBlob1" clipPathUnits="objectBoundingBox">
                               <path d="M0.7,0.1 C0.9,0.2,1,0.4,0.95,0.6 C0.9,0.8,0.7,1,0.5,0.95 C0.3,0.9,0.1,0.7,0.1,0.5 C0.1,0.3,0.5,0,0.7,0.1 Z" />
@@ -71,7 +71,7 @@ const WelcomeScreen = () => {
                             height="1400"
                             clipPath="url(#carouselBlob1)"
                             preserveAspectRatio="xMidYMid slice"
-                            style={{maxWidth:'85%',maxHeight:'85%'}}
+                            style={{maxWidth:'80%',maxHeight:'80%'}}
                           />
                         </svg>
                       </div>
@@ -83,29 +83,29 @@ const WelcomeScreen = () => {
                       {/* Content Section */}
                       <div className="flex flex-col justify-center items-start px-4 md:px-12 py-6 md:py-10 md:w-1/2 w-full relative z-10" style={{background: 'transparent', minHeight: '100%'}}>
                         <div className="flex items-center mb-3 md:mb-4">
-                          <span className="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
-                            <Book className="w-5 h-5 md:w-7 md:h-7 text-white drop-shadow" />
+                          <span className="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
+                            <Book className="w-4 h-4 md:w-5 md:h-5 lg:w-7 lg:h-7 text-white drop-shadow" />
                           </span>
                           <span className="uppercase text-xs font-bold tracking-widest text-blue-500">Knowledge</span>
                         </div>
-                        <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-blue-900 mb-6 md:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Knowledge is root, Prosperity is fruit."</blockquote>
-                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-2xl shadow-xl transition-all text-base md:text-lg tracking-wide">Start Learning</button></Link>
+                        <blockquote className="font-serif text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-blue-900 mb-4 md:mb-6 lg:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Knowledge is root, Prosperity is fruit."</blockquote>
+                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-4 md:px-6 lg:px-8 py-2 md:py-2.5 lg:py-3 rounded-2xl shadow-xl transition-all text-sm md:text-base lg:text-lg tracking-wide">Start Learning</button></Link>
                       </div>
                       {/* Image Section */}
                       <div className="relative flex-1 h-full flex items-center justify-center">
-                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[85%] md:w-[90%] h-[85%] md:h-[90%] max-w-[85%] md:max-w-[90%] max-h-[85%] md:max-h-[90%]" style={{maxWidth:'85%',maxHeight:'85%'}}>
+                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[80%] md:w-[85%] lg:w-[90%] h-[80%] md:h-[85%] lg:h-[90%] max-w-[80%] md:max-w-[85%] lg:max-w-[90%] max-h-[80%] md:max-h-[85%] lg:max-h-[90%]" style={{maxWidth:'80%',maxHeight:'80%'}}>
                           <defs>
                             <clipPath id="carouselBlob2" clipPathUnits="objectBoundingBox">
                               <path d="M0.8,0.2 C1,0.4,0.95,0.8,0.7,0.95 C0.5,1,0.2,0.8,0.1,0.5 C0,0.2,0.3,0,0.6,0.1 C0.7,0.15,0.7,0.1,0.8,0.2 Z" />
                             </clipPath>
                           </defs>
                           <image
-                            href="bg3.png"
+                            href="bg2.png"
                             width="1400"
                             height="1400"
                             clipPath="url(#carouselBlob2)"
                             preserveAspectRatio="xMidYMid slice"
-                            style={{maxWidth:'85%',maxHeight:'85%'}}
+                            style={{maxWidth:'80%',maxHeight:'80%'}}
                           />
                         </svg>
                       </div>
@@ -117,29 +117,29 @@ const WelcomeScreen = () => {
                       {/* Content Section */}
                       <div className="flex flex-col justify-center items-start px-4 md:px-12 py-6 md:py-10 md:w-1/2 w-full relative z-10" style={{background: 'transparent', minHeight: '100%'}}>
                         <div className="flex items-center mb-3 md:mb-4">
-                          <span className="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
-                            <Star className="w-5 h-5 md:w-7 md:h-7 text-white drop-shadow" />
+                          <span className="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-200 shadow-lg border-2 border-white/70 mr-2 md:mr-3 animate-float-slow">
+                            <Star className="w-4 h-4 md:w-5 md:h-5 lg:w-7 lg:h-7 text-white drop-shadow" />
                           </span>
-                          <span className="uppercase text-xs font-bold tracking-widest text-blue-500">Together</span>
+                          <span className="uppercase text-xs font-bold tracking-widest text-blue-500">Success</span>
                         </div>
-                        <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-blue-900 mb-6 md:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Alone we can do so little; together we can do so much."</blockquote>
-                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-2xl shadow-xl transition-all text-base md:text-lg tracking-wide">Join the Community</button></Link>
+                        <blockquote className="font-serif text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-blue-900 mb-4 md:mb-6 lg:mb-8 drop-shadow-lg leading-tight md:leading-snug tracking-tight">"Alone we can do so little; together we can do so much."</blockquote>
+                        <Link to="/register"><button className="bg-gradient-to-r from-blue-700 to-cyan-500 hover:from-blue-800 hover:to-cyan-600 text-white font-bold px-4 md:px-6 lg:px-8 py-2 md:py-2.5 lg:py-3 rounded-2xl shadow-xl transition-all text-sm md:text-base lg:text-lg tracking-wide">Register the Community</button></Link>
                       </div>
                       {/* Image Section */}
                       <div className="relative flex-1 h-full flex items-center justify-center">
-                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[85%] md:w-[90%] h-[85%] md:h-[90%] max-w-[85%] md:max-w-[90%] max-h-[85%] md:max-h-[90%]" style={{maxWidth:'85%',maxHeight:'85%'}}>
+                        <svg viewBox="0 0 1400 1400" width="90%" height="90%" className="w-[80%] md:w-[85%] lg:w-[90%] h-[80%] md:h-[85%] lg:h-[90%] max-w-[80%] md:max-w-[85%] lg:max-w-[90%] max-h-[80%] md:max-h-[85%] lg:max-h-[90%]" style={{maxWidth:'80%',maxHeight:'80%'}}>
                           <defs>
                             <clipPath id="carouselBlob3" clipPathUnits="objectBoundingBox">
-                              <path d="M0.6,0.05 C0.9,0.1,1,0.5,0.85,0.8 C0.7,1,0.3,1,0.1,0.7 C-0.05,0.4,0.2,0.1,0.6,0.05 Z" />
+                              <path d="M0.6,0.1 C0.8,0.2,0.9,0.4,0.85,0.6 C0.8,0.8,0.6,1,0.4,0.95 C0.2,0.9,0.1,0.7,0.1,0.5 C0.1,0.3,0.3,0.1,0.5,0.1 C0.6,0.1,0.6,0.1,0.6,0.1 Z" />
                             </clipPath>
                           </defs>
                           <image
-                            href="bg2.png"
+                            href="bg3.png"
                             width="1400"
                             height="1400"
                             clipPath="url(#carouselBlob3)"
                             preserveAspectRatio="xMidYMid slice"
-                            style={{maxWidth:'85%',maxHeight:'85%'}}
+                            style={{maxWidth:'80%',maxHeight:'80%'}}
                           />
                         </svg>
                       </div>
@@ -148,10 +148,10 @@ const WelcomeScreen = () => {
                 </CarouselContent>
               </Carousel>
             </section>
-            {/* Welcome to Unity Nest - Project Details Vertical Stepper Section */}
+            {/* Welcome to Unity  - Project Details Vertical Stepper Section */}
             <section className="w-full py-8 md:py-16 bg-[#f4f8fb] border-b border-gray-200">
               <div className="max-w-3xl mx-auto flex flex-col items-center px-4">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 md:mb-12 animate-gradient-reveal bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg">Welcome to UNITY Nest</h2>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 md:mb-12 animate-gradient-reveal bg-gradient-to-r from-sky-700 via-blue-500 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg">Welcome to UNITY </h2>
                 <div className="relative w-full flex flex-col gap-8 md:gap-12 pl-6 md:pl-8 lg:pl-16">
                   {/* Vertical Line with glow animation */}
                   <div className="absolute left-2 md:left-4 lg:left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-100 rounded-full animate-glow-vertical" style={{ zIndex: 0 }} />
@@ -160,7 +160,7 @@ const WelcomeScreen = () => {
                     <div className="bg-gradient-to-br from-blue-50 via-white to-blue-100 text-blue-700 flex items-center justify-center animate-bounce-in w-10 h-10 md:w-12 md:h-12 rounded-full" style={{ animationDelay: '0.2s' }}><Globe className="w-5 h-5 md:w-7 md:h-7" /></div>
                     <div>
                       <div className="font-semibold text-base md:text-lg text-gray-900 mb-1 animate-typewriter" style={{ animationDelay: '0.3s' }}>Platform Overview</div>
-                      <div className="text-gray-700 text-sm md:text-base animate-content-fade-scale" style={{ animationDelay: '0.4s' }}>Unity Nest is a dedicated professional and social network designed to empower, connect, and support our community members in their personal and career journeys.</div>
+                      <div className="text-gray-700 text-sm md:text-base animate-content-fade-scale" style={{ animationDelay: '0.4s' }}>Unity  is a dedicated professional and social network designed to empower, connect, and support our community members in their personal and career journeys.</div>
                     </div>
                   </div>
                   {/* Step 2: Key Functionalities */}
@@ -168,7 +168,7 @@ const WelcomeScreen = () => {
                     <div className="bg-gradient-to-br from-blue-50 via-white to-blue-100 text-blue-700 flex items-center justify-center animate-bounce-in w-10 h-10 md:w-12 md:h-12 rounded-full" style={{ animationDelay: '0.6s' }}><Book className="w-5 h-5 md:w-7 md:h-7" /></div>
                     <div>
                       <div className="font-semibold text-base md:text-lg text-gray-900 mb-1 animate-typewriter" style={{ animationDelay: '0.7s' }}>Key Functionalities</div>
-                      <div className="text-gray-700 text-sm md:text-base animate-content-fade-scale" style={{ animationDelay: '0.8s' }}>Network with peers, discover job opportunities, share knowledge, and access resources. Unity Nest offers a safe space for collaboration, mentorship, and growth.</div>
+                      <div className="text-gray-700 text-sm md:text-base animate-content-fade-scale" style={{ animationDelay: '0.8s' }}>Network with peers, discover job opportunities, share knowledge, and access resources. Unity  offers a safe space for collaboration, mentorship, and growth.</div>
                     </div>
                   </div>
                   {/* Step 3: Our Motive */}
@@ -377,20 +377,35 @@ const WelcomeScreen = () => {
                 </div>
               </div>
               <div className="flex justify-center mt-8 md:mt-10">
-              <Link to="/register"><Button size="lg" className="bg-gradient-to-r from-sky-400 via-blue-400 to-sky-600 text-white shadow-xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold animate-gradient-x">Join Now</Button></Link>
+              <Link to="/register"><Button size="lg" className="bg-gradient-to-r from-sky-400 via-blue-400 to-sky-600 text-white shadow-xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold animate-gradient-x">Register Now</Button></Link>
               </div>
             </section>
             {/* Footer - Premium Style */}
             <footer className="w-full bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-              <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
-                <div className="text-center md:text-left mb-4 md:mb-0">
-                  <div className="text-base md:text-lg font-bold text-sky-800">UNITY Nest</div>
-                  <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
-                </div>
-                <div className="flex gap-4 md:gap-6">
-                  <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
-                  <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
-                  <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+              <div className="max-w-6xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
+                  <div className="text-center md:text-left mb-4 md:mb-0">
+                    <div className="text-base md:text-lg font-bold text-sky-800">UNITY </div>
+                    <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
+                  </div>
+                  
+                  {/* Navigation Links */}
+                  <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-4 md:mb-0">
+                    <div className="flex gap-4 md:gap-6">
+                      <Link to="/policy" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                        Privacy Policy
+                      </Link>
+                      <Link to="/terms" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                        Terms & Conditions
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 md:gap-6">
+                    <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
+                    <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
+                    <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+                  </div>
                 </div>
               </div>
             </footer>

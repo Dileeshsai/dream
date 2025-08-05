@@ -11,18 +11,18 @@ const About = () => {
       {/* Purpose and Aspirations Section */}
 
       {/* Main Content - About Section */}
-      <div className="flex flex-col min-h-screen ">
+      <div className="flex flex-col min-h-screen">
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 md:py-8" style={{background: 'linear-gradient(135deg, #e0f2fe 0%, #f3fdf7 100%)', minHeight: '70vh', position: 'relative'}}>
           <main className="w-full max-w-5xl mx-auto flex flex-col items-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-sky-800 mb-2 drop-shadow-lg animate-title-pop text-center" style={{letterSpacing: '1.5px'}}>About UNITY Nest</h1>
-            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-divider-fadein w-full max-w-4xl">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-sky-800 mb-2 drop-shadow-lg animate-title-pop text-center px-4" style={{letterSpacing: '1.5px'}}>About UNITY </h1>
+            <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-divider-fadein w-full max-w-4xl px-4">
               <span className="h-1 w-16 md:w-32 lg:w-56 rounded-full bg-gradient-to-r from-sky-400 via-green-300 to-blue-400 animate-divider-glow"></span>
-              <span className="text-sm md:text-base lg:text-lg font-medium text-sky-700 tracking-wide flex-1 text-center">Empowering Through Connection, Opportunity & Growth</span>
+              <span className="text-sm md:text-base lg:text-lg font-medium text-sky-700 tracking-wide flex-1 text-center px-2">Empowering Through Connection, Opportunity & Growth</span>
               <span className="h-1 w-16 md:w-32 lg:w-56 rounded-full bg-gradient-to-l from-sky-400 via-green-300 to-blue-400 animate-divider-glow"></span>
             </div>
-            <p className="text-base md:text-lg lg:text-xl text-gray-700 mb-8 md:mb-10 animate-fade-in w-full text-center" style={{maxWidth: '1000px', fontWeight: 500, letterSpacing: '0.2px'}}>UNITY Nest (Dalit Resources for Education and Economics Advanced and Mobilization Society) is dedicated to empowering individuals and families through <span className="font-bold text-blue-600">connection</span>, <span className="font-bold text-green-600">opportunity</span>, and <span className="font-bold text-sky-600">growth</span>.</p>
-            <div className="relative w-full flex justify-center">
-              <div className="glass-card-timeline animate-card-fadein expanded-width">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-8 md:mb-10 animate-fade-in w-full text-center px-4" style={{maxWidth: '1000px', fontWeight: 500, letterSpacing: '0.2px'}}>UNITY  (Dalit Resources for Education and Economics Advanced and Mobilization Society) is dedicated to empowering individuals and families through <span className="font-bold text-blue-600">connection</span>, <span className="font-bold text-green-600">opportunity</span>, and <span className="font-bold text-sky-600">growth</span>.</p>
+            <div className="relative w-full flex justify-center px-4">
+              <div className="glass-card-timeline animate-card-fadein expanded-width w-full max-w-4xl">
                 {/* Timeline/Stepper */}
                 <div className="timeline-vertical">
                   {/* Step 1: Connection */}
@@ -162,7 +162,7 @@ const About = () => {
                     <strong>DREAMS (Dalit Resource for Education and Economic Advancement and Mobilisation) is a registered non-profit society</strong> that began with a vision to create a comprehensive platform for marginalized communities to connect, learn, and grow together.
                   </p>
                   <p className="mb-3">
-                    Our Unity Nest platform serves as a comprehensive ecosystem for community empowerment, providing educational resources, economic advancement through job portals, community mobilization, and transparent data sharing for mutual growth.
+                    Our Unity  platform serves as a comprehensive ecosystem for community empowerment, providing educational resources, economic advancement through job portals, community mobilization, and transparent data sharing for mutual growth.
                   </p>
                   <p className="mb-3">
                     <strong>Data Protection & Privacy:</strong> We collect and process personal data (identification, demographic, transaction, and communication data) to provide our services, maintain records, and enable community networking. We implement SSL encryption, access controls, and comply with GDPR and IT Act, 2000 (India).
@@ -191,15 +191,30 @@ const About = () => {
         </section>
         {/* Footer */}
         <footer className="w-full bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
-            <div className="text-center md:text-left mb-4 md:mb-0">
-              <div className="text-base md:text-lg font-bold text-sky-800">UNITY Nest</div>
-              <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
-            </div>
-            <div className="flex gap-4 md:gap-6">
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
-              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
+              <div className="text-center md:text-left mb-4 md:mb-0">
+                <div className="text-base md:text-lg font-bold text-sky-800">UNITY </div>
+                <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
+              </div>
+              
+              {/* Navigation Links */}
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-4 md:mb-0">
+                <div className="flex gap-4 md:gap-6">
+                  <Link to="/policy" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                    Privacy Policy
+                  </Link>
+                  <Link to="/terms" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                    Terms & Conditions
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 md:gap-6">
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
+                <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+              </div>
             </div>
           </div>
         </footer>

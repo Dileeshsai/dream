@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Loader2, Briefcase } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiGet, apiDelete, apiPost, apiPut } from '../../services/apiService';
 import { useForm } from 'react-hook-form';
@@ -161,62 +161,122 @@ const AdminJobManagement = () => {
             </CardHeader>
             <CardContent>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="bg-gray-100 dark:bg-gray-800">
-                            <tr>
-                                <th className="p-3 text-left font-semibold">Title</th>
-                                <th className="p-3 text-left font-semibold">Location</th>
-                                <th className="p-3 text-left font-semibold">Job Type</th>
-                                <th className="p-3 text-left font-semibold">Salary Range</th>
-                                <th className="p-3 text-left font-semibold">Status</th>
-                                <th className="p-3 text-left font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div className="min-w-full">
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
                             {loading ? (
-                                <tr>
-                                    <td colSpan="6" className="text-center p-6">
-                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-                                    </td>
-                                </tr>
-                            ) : (jobs || []).map(job => (
-                                <tr key={job.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                    <td className="p-3 font-medium">{job.title}</td>
-                                    <td className="p-3">{job.location}</td>
-                                    <td className="p-3 capitalize">{job.job_type}</td>
-                                    <td className="p-3">{job.salary_range}</td>
-                                    <td className="p-3 capitalize">{job.status || 'pending'}</td>
-                                    <td className="p-3">
+                                <div className="text-center p-6">
+                                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+                                    <p className="text-gray-500 mt-2">Loading jobs...</p>
+                                </div>
+                            ) : jobs && jobs.length > 0 ? (
+                                jobs.map(job => (
+                                    <div key={job.id} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 truncate">{job.title}</h3>
+                                                <p className="text-sm text-gray-600 truncate">{job.company}</p>
+                                                <p className="text-sm text-gray-500">{job.location}</p>
+                                            </div>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                job.status === 'active' ? 'bg-green-100 text-green-800' :
+                                                job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            } capitalize`}>
+                                                {job.status}
+                                            </span>
+                                        </div>
                                         <div className="flex gap-2">
                                             <Button 
-                                                onClick={() => handleView(job)} 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8"
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="flex-1 h-8 text-xs"
+                                                onClick={() => handleView(job)}
                                             >
-                                                <Eye className="h-4 w-4" />
+                                                <Eye className="h-3 w-3 mr-1" />
+                                                View
                                             </Button>
                                             <Button 
-                                                onClick={() => handleEdit(job)} 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8"
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="flex-1 h-8 text-xs"
+                                                onClick={() => handleEdit(job)}
                                             >
-                                                <Edit className="h-4 w-4" />
+                                                <Edit className="h-3 w-3 mr-1" />
+                                                Edit
                                             </Button>
-                                            <Button onClick={() => handleDelete(job.id)} variant="ghost" size="icon" className="text-red-500 hover:text-red-600 h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
-                                            {job.status !== 'accepted' && (
-                                                <Button onClick={() => handleAccept(job.id)} variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50">Accept</Button>
-                                            )}
-                                            {job.status !== 'rejected' && (
-                                                <Button onClick={() => handleReject(job.id)} variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50">Reject</Button>
-                                            )}
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="flex-1 h-8 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                                                onClick={() => handleDelete(job.id)}
+                                            >
+                                                <Trash2 className="h-3 w-3 mr-1" />
+                                                Delete
+                                            </Button>
                                         </div>
-                                    </td>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8">
+                                    <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                                    <p className="text-gray-500">{alertState.message || 'No jobs found'}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <table className="hidden md:table w-full text-sm">
+                            <thead className="bg-gray-100 dark:bg-gray-800">
+                                <tr>
+                                    <th className="p-3 text-left font-semibold">Title</th>
+                                    <th className="p-3 text-left font-semibold">Company</th>
+                                    <th className="p-3 text-left font-semibold">Location</th>
+                                    <th className="p-3 text-left font-semibold">Status</th>
+                                    <th className="p-3 text-left font-semibold">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="5" className="text-center p-6">
+                                            <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+                                        </td>
+                                    </tr>
+                                ) : jobs && jobs.length > 0 ? (
+                                    jobs.map(job => (
+                                        <tr key={job.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td className="p-3">{job.title}</td>
+                                            <td className="p-3">{job.company}</td>
+                                            <td className="p-3">{job.location}</td>
+                                            <td className="p-3">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                    job.status === 'active' ? 'bg-green-100 text-green-800' :
+                                                    job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'
+                                                } capitalize`}>
+                                                    {job.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex gap-2">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(job)}><Eye className="h-4 w-4" /></Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(job)}><Edit className="h-4 w-4" /></Button>
+                                                    <Button onClick={() => handleDelete(job.id)} variant="ghost" size="icon" className="text-red-500 hover:text-red-600 h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center p-6 text-gray-500">
+                                            {alertState.message || 'No jobs found'}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* View Job Modal */}

@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArrowLeft, Loader, Shield, Mail } from 'lucide-react';
+import WelcomeHeader from '../welcome/WelcomeHeader';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -104,17 +105,9 @@ const OTPVerification = () => {
     setError('');
 
     try {
-      const result = await resendOtp(pendingEmail);
-      
-      if (result.success) {
-        setOtp(['', '', '', '', '', '']);
-        setError('');
-        setCanResend(false);
-        setTimer(10 * 60); // Reset timer to 10 minutes
-        inputRefs.current[0].focus();
-      } else {
-        setError(result.error || 'Failed to resend OTP');
-      }
+      await resendOtp(pendingEmail);
+      setTimer(10 * 60); // Reset timer to 10 minutes
+      setCanResend(false);
     } catch (error) {
       setError('Failed to resend OTP. Please try again.');
     } finally {
@@ -129,93 +122,95 @@ const OTPVerification = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Shield className="w-8 h-8 text-white" />
+    <>
+      <WelcomeHeader />
+      
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-white flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <Shield className="w-12 h-12 text-sky-600" />
             </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Email</h1>
-          <p className="text-gray-600">
-            We've sent a verification code to{' '}
-            <span className="font-semibold text-gray-900">{pendingEmail}</span>
-          </p>
-        </div>
-
-        {/* Timer */}
-        {timer > 0 && (
-          <div className="text-center mb-6">
-            <p className="text-sm text-gray-600">
-              Code expires in <span className="font-semibold text-red-600">{formatTime(timer)}</span>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Verify Your Email</h1>
+            <p className="text-gray-600">
+              We've sent a 6-digit code to <br />
+              <span className="font-semibold text-sky-600">{pendingEmail}</span>
             </p>
           </div>
-        )}
 
-        {/* OTP Input */}
-        <div className="flex justify-center space-x-3 mb-6">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={el => inputRefs.current[index] = el}
-              type="text"
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              className={`w-12 h-12 text-center text-xl font-semibold border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-              maxLength={1}
-            />
-          ))}
-        </div>
+          {/* OTP Input */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
+            <form onSubmit={(e) => { e.preventDefault(); handleVerify(); }}>
+              <div className="flex justify-between mb-6">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => inputRefs.current[index] = el}
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    className="w-12 h-12 md:w-14 md:h-14 text-center text-xl md:text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
+                    style={{ fontFamily: 'monospace' }}
+                  />
+                ))}
+              </div>
 
-        {error && (
-          <div className="text-red-600 text-center mb-4">{error}</div>
-        )}
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
 
-        {/* Verify Button */}
-        <button
-          onClick={() => handleVerify()}
-          disabled={loading || otp.join('').length !== 6}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center disabled:opacity-50"
-        >
-          {loading ? (
-            <Loader className="w-5 h-5 animate-spin" />
-          ) : (
-            'Verify Code'
-          )}
-        </button>
+              <button
+                type="submit"
+                disabled={loading || otp.join('').length !== 6}
+                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-sky-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mb-4"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    Verifying...
+                  </div>
+                ) : (
+                  'Verify Email'
+                )}
+              </button>
+            </form>
 
-        {/* Resend Code */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 mb-2">Didn't receive the code?</p>
-          <button
-            onClick={handleResend}
-            disabled={!canResend || loading}
-            className="text-blue-600 hover:text-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {canResend ? 'Resend Code' : `Resend in ${formatTime(timer)}`}
-          </button>
-        </div>
+            {/* Timer and Resend */}
+            <div className="text-center">
+              {timer > 0 ? (
+                <p className="text-gray-500 text-sm">
+                  Resend code in <span className="font-mono font-semibold">{formatTime(timer)}</span>
+                </p>
+              ) : (
+                <button
+                  onClick={handleResend}
+                  disabled={loading}
+                  className="text-sky-600 hover:text-sky-700 font-medium text-sm disabled:opacity-50"
+                >
+                  Resend verification code
+                </button>
+              )}
+            </div>
+          </div>
 
-        {/* Back to Register */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              localStorage.removeItem('pendingRegistrationEmail');
-              navigate('/register');
-            }}
-            className="text-gray-600 hover:text-gray-700 font-semibold flex items-center justify-center mx-auto"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Register
-          </button>
+          {/* Back to Register */}
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/register')}
+              className="flex items-center justify-center mx-auto text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to registration
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

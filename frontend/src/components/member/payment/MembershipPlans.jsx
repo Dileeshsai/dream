@@ -9,12 +9,15 @@ import {
   Star, 
   Zap, 
   ArrowLeft,
-  CreditCard
+  CreditCard,
+  Download
 } from 'lucide-react';
 
 const MembershipPlans = () => {
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedPlanForQR, setSelectedPlanForQR] = useState(null);
 
   const plans = [
     {
@@ -85,8 +88,19 @@ const MembershipPlans = () => {
 
   const handleSelectPlan = (planId) => {
     setSelectedPlan(planId);
+    setSelectedPlanForQR(planId);
+    setShowQRModal(true);
     // Navigate to payment flow
     // navigate('/payment', { state: { plan: planId, billing: billingCycle } });
+  };
+
+  const handleDownloadQR = () => {
+    const link = document.createElement('a');
+    link.href = '/qr.jpg';
+    link.download = `dream-society-${selectedPlanForQR}-plan-qr.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const formatPrice = (price) => {
@@ -334,6 +348,111 @@ const MembershipPlans = () => {
             </div>
           </div>
         </div>
+
+        {/* QR Code Modal */}
+        {showQRModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 transform transition-all duration-300 scale-100">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold">
+                      {selectedPlanForQR === 'free' ? 'Free Plan' : 
+                       selectedPlanForQR === 'premium' ? 'Premium Plan' : 'Enterprise Plan'}
+                    </h3>
+                    <p className="text-blue-100 text-sm">Payment QR Code</p>
+                  </div>
+                  <button
+                    onClick={() => setShowQRModal(false)}
+                    className="text-white hover:text-blue-100 transition-colors p-1 rounded-full hover:bg-white hover:bg-opacity-20"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                {/* Plan Details */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="text-gray-600">Plan:</span>
+                      <span className="font-semibold text-gray-900 ml-2 capitalize">
+                        {selectedPlanForQR === 'free' ? 'Free' : 
+                         selectedPlanForQR === 'premium' ? 'Premium' : 'Enterprise'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Billing:</span>
+                      <span className="font-semibold text-gray-900 ml-2 capitalize">{billingCycle}</span>
+                    </div>
+                  </div>
+                  {selectedPlanForQR !== 'free' && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <span className="text-gray-600 text-sm">Amount:</span>
+                      <span className="font-bold text-gray-900 ml-2">
+                        ₹{plans.find(p => p.id === selectedPlanForQR)?.price[billingCycle].toLocaleString()}
+                        <span className="text-sm font-normal text-gray-600 ml-1">
+                          /{billingCycle === 'monthly' ? 'month' : 'year'}
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* QR Code Section */}
+                <div className="text-center mb-4">
+                  <div className="inline-block p-3 bg-white border border-gray-200 rounded-xl shadow-md">
+                    <img 
+                      src="/qr.jpg" 
+                      alt="Payment QR Code" 
+                      className="w-40 h-40 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mr-2 mt-0.5">
+                      <span className="text-blue-600 text-xs font-bold">i</span>
+                    </div>
+                    <p className="text-blue-800 text-xs">
+                      Scan with UPI app (Google Pay, PhonePe, Paytm) to pay securely.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDownloadQR}
+                    className="flex-1 flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Download
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowQRModal(false)}
+                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                {/* Security Note */}
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    🔒 Bank-level security
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     // </div>
   );

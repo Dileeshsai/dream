@@ -934,48 +934,110 @@ const AdminUserManagement = () => {
           )}
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100 dark:bg-gray-800">
-                <tr>
-                  <th className="p-3 text-left font-semibold">Full Name</th>
-                  <th className="p-3 text-left font-semibold">Email</th>
-                  <th className="p-3 text-left font-semibold">Phone</th>
-                  <th className="p-3 text-left font-semibold">Role</th>
-                  <th className="p-3 text-left font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <div className="min-w-full">
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="text-center p-6">
-                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-                    </td>
-                  </tr>
+                  <div className="text-center p-6">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+                    <p className="text-gray-500 mt-2">Loading users...</p>
+                  </div>
                 ) : users && users.length > 0 ? (
                   users.map(u => (
-                    <tr key={u.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="p-3">{u.full_name}</td>
-                      <td className="p-3">{u.email}</td>
-                      <td className="p-3">{u.phone}</td>
-                      <td className="p-3 capitalize">{u.role}</td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewUser(u)}><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUser(u)}><Edit className="h-4 w-4" /></Button>
-                          <Button onClick={() => confirmDelete(u)} variant="ghost" size="icon" className="text-red-500 hover:text-red-600 h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                    <div key={u.id} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 truncate">{u.full_name}</h3>
+                          <p className="text-sm text-gray-600 truncate">{u.email}</p>
+                          <p className="text-sm text-gray-500">{u.phone}</p>
                         </div>
-                      </td>
-                    </tr>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                          {u.role}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-8 text-xs"
+                          onClick={() => handleViewUser(u)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-8 text-xs"
+                          onClick={() => handleEditUser(u)}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-8 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                          onClick={() => confirmDelete(u)}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="5" className="text-center p-6 text-gray-500">
-                      {error ? 'Failed to load users' : 'No users found'}
-                    </td>
-                  </tr>
+                  <div className="text-center py-8">
+                    <User className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">{error ? 'Failed to load users' : 'No users found'}</p>
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View */}
+              <table className="hidden md:table w-full text-sm">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="p-3 text-left font-semibold">Full Name</th>
+                    <th className="p-3 text-left font-semibold">Email</th>
+                    <th className="p-3 text-left font-semibold">Phone</th>
+                    <th className="p-3 text-left font-semibold">Role</th>
+                    <th className="p-3 text-left font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+                      </td>
+                    </tr>
+                  ) : users && users.length > 0 ? (
+                    users.map(u => (
+                      <tr key={u.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="p-3">{u.full_name}</td>
+                        <td className="p-3">{u.email}</td>
+                        <td className="p-3">{u.phone}</td>
+                        <td className="p-3 capitalize">{u.role}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewUser(u)}><Eye className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUser(u)}><Edit className="h-4 w-4" /></Button>
+                            <Button onClick={() => confirmDelete(u)} variant="ghost" size="icon" className="text-red-500 hover:text-red-600 h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="text-center p-6 text-gray-500">
+                        {error ? 'Failed to load users' : 'No users found'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Pagination */}

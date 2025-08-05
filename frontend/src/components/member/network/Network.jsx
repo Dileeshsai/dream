@@ -209,9 +209,9 @@ const Network = () => {
                   disabled={loading}
                 />
               </div>
-              <div className="flex gap-3 w-full lg:w-auto">
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger className="w-full lg:w-[180px] h-12 border-0 bg-gray-50 dark:bg-slate-700">
+                  <SelectTrigger className="w-full sm:w-[180px] h-12 border-0 bg-gray-50 dark:bg-slate-700">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>
@@ -220,30 +220,37 @@ const Network = () => {
                     <SelectItem value="name">Name (A-Z)</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button 
-                  className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg" 
-                  onClick={handleSearch}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                      Searching...
-                    </>
-                  ) : (
-                    'Search'
-                  )}
-                </Button>
-                {searchTerm && (
+                <div className="flex gap-2">
                   <Button 
-                    variant="outline"
-                    className="h-12 px-4 border-gray-300 text-gray-600 hover:bg-gray-50" 
-                    onClick={handleClearSearch}
+                    className="flex-1 sm:flex-none h-12 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg" 
+                    onClick={handleSearch}
                     disabled={loading}
                   >
-                    Clear
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        <span className="hidden sm:inline">Searching...</span>
+                        <span className="sm:hidden">...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Search</span>
+                        <span className="sm:hidden">Go</span>
+                      </>
+                    )}
                   </Button>
-                )}
+                  {searchTerm && (
+                    <Button 
+                      variant="outline"
+                      className="h-12 px-3 sm:px-4 border-gray-300 text-gray-600 hover:bg-gray-50" 
+                      onClick={handleClearSearch}
+                      disabled={loading}
+                    >
+                      <span className="hidden sm:inline">Clear</span>
+                      <span className="sm:hidden">×</span>
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -266,27 +273,27 @@ const Network = () => {
         )}
 
         {/* Members Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 mb-8">
           {members.map((member) => (
             <Card 
               key={member.id} 
               className="group bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-0 shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer"
               onClick={() => handleViewProfile(member)}
             >
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 {/* Profile Header */}
-                <div className="text-center mb-4">
-                  <div className="relative inline-block mb-3">
-                    <Avatar className="w-14 h-14 border-2 border-blue-200 dark:border-blue-800">
+                <div className="text-center mb-3 sm:mb-4">
+                  <div className="relative inline-block mb-2 sm:mb-3">
+                    <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-blue-200 dark:border-blue-800">
                       <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs sm:text-sm">
                         {getInitials(member.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-slate-800"></div>
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full border-2 border-white dark:border-slate-800"></div>
                   </div>
                   
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 truncate">{member.name}</h3>
+                  <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-1 truncate">{member.name}</h3>
                   
                   {member.title && member.title !== 'Professional' && (
                     <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-1 truncate">{member.title}</p>

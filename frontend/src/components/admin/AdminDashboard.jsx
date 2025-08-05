@@ -122,21 +122,23 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {stats.map((stat, index) => {
           const IconComponent = getIconComponent(stat.icon);
           return (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-md">
+            <div key={index} className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                  <p className={`text-sm font-medium ${getChangeColor(stat.change)}`}>
-                    {stat.change} vs last month
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{stat.label}</p>
+                  <p className="text-xl sm:text-3xl font-bold text-gray-900 truncate">{stat.value}</p>
+                  {stat.change && (
+                    <p className={`text-xs sm:text-sm font-medium ${getChangeColor(stat.change)}`}>
+                      {stat.change}
+                    </p>
+                  )}
                 </div>
-                <div className={`p-3 rounded-full bg-${stat.color}-100 dark:bg-${stat.color}-900/50`}>
-                  <IconComponent className={`w-6 h-6 text-${stat.color}-600`} />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center flex-shrink-0 ml-2`}>
+                  <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 text-${stat.color}-600`} />
                 </div>
               </div>
             </div>
@@ -144,94 +146,88 @@ const AdminDashboard = () => {
         })}
       </div>
 
-      {/* Analytics Charts */}
-      {userAnalytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UserRegistrationTrend data={userAnalytics.registrationTrend} />
-          <UserRoleDistribution data={userAnalytics.roleDistribution} />
-        </div>
-      )}
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <UserRegistrationTrend data={userAnalytics?.registrationTrend} />
+        <UserRoleDistribution data={userAnalytics?.roleDistribution} />
+      </div>
 
-      {userAnalytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UserVerificationStatus data={userAnalytics.verificationStatus} />
-          {jobAnalytics && <JobStatusDistribution data={jobAnalytics.jobStatusDistribution} />}
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <UserVerificationStatus data={userAnalytics?.verificationStatus} />
+        <JobStatusDistribution data={jobAnalytics?.statusDistribution} />
+      </div>
 
-      {jobAnalytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <JobTypeDistribution data={jobAnalytics.jobTypeDistribution} />
-          <TopJobsByApplications data={jobAnalytics.topJobsByApplications} />
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <JobTypeDistribution data={jobAnalytics?.typeDistribution} />
+        <TopJobsByApplications data={jobAnalytics?.topJobs} />
+      </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Users</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Recent Users */}
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Users</h2>
             <button
-              onClick={() => fetchDashboardData()}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              onClick={fetchDashboardData}
+              className="p-2 text-gray-500 hover:text-gray-700"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 sm:space-y-4">
             {recentUsers.length > 0 ? (
-              recentUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-md">
-                  <div>
-                    <p className="font-medium text-gray-800 dark:text-gray-200">{user.full_name || user.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
-                      {user.role} • Joined {user.joinDate}
-                    </p>
+              recentUsers.map((user, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Users className="w-4 h-4 text-blue-600" />
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    user.status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {user.status}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 text-sm font-medium truncate">{user.full_name}</p>
+                    <p className="text-gray-500 text-xs truncate">{user.email}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{user.created_at}</span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent users found</p>
+              <div className="text-center py-6 sm:py-8">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm sm:text-base">No recent users</p>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Jobs</h3>
+        {/* Recent Jobs */}
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Jobs</h2>
             <button
-              onClick={() => fetchDashboardData()}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              onClick={fetchDashboardData}
+              className="p-2 text-gray-500 hover:text-gray-700"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 sm:space-y-4">
             {recentJobs.length > 0 ? (
-              recentJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-md">
-                  <div>
-                    <p className="font-medium text-gray-800 dark:text-gray-200">{job.title}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {job.company} • {job.applicants} applicants
-                    </p>
+              recentJobs.map((job, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="w-4 h-4 text-green-600" />
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    job.status === 'accepted' ? 'bg-green-100 text-green-800' : 
-                    job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {job.status}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 text-sm font-medium truncate">{job.title}</p>
+                    <p className="text-gray-500 text-xs truncate">{job.company}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{job.created_at}</span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent jobs found</p>
+              <div className="text-center py-6 sm:py-8">
+                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm sm:text-base">No recent jobs</p>
+              </div>
             )}
           </div>
         </div>

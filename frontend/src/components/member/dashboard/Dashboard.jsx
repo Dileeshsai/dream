@@ -197,18 +197,18 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {stats.map((stat, index) => {
           const IconComponent = getIconComponent(stat.icon);
           return (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div key={index} className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{stat.label}</p>
+                  <p className="text-xl sm:text-3xl font-bold text-gray-900 truncate">{stat.value}</p>
                 </div>
-                <div className={`w-12 h-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
-                  <IconComponent className={`w-6 h-6 text-${stat.color}-600`} />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center flex-shrink-0 ml-2`}>
+                  <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 text-${stat.color}-600`} />
                 </div>
               </div>
             </div>
@@ -218,7 +218,7 @@ const Dashboard = () => {
 
       {/* Analytics Charts */}
       {analytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <ApplicationTrend data={analytics.applicationTrend} />
           <ApplicationStatus 
             totalApplications={analytics.totalApplications}
@@ -228,7 +228,7 @@ const Dashboard = () => {
       )}
 
       {analytics && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <SuccessRate 
             successRate={analytics.successRate}
             endorsementRate={analytics.endorsementRate}
@@ -238,17 +238,17 @@ const Dashboard = () => {
       )}
 
       {analytics?.topSkills && analytics.topSkills.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <TopSkills skills={analytics.topSkills} />
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Recent Activity */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Activity</h2>
               <button
                 onClick={() => fetchDashboardData()}
                 className="p-2 text-gray-500 hover:text-gray-700"
@@ -256,27 +256,27 @@ const Dashboard = () => {
                 <RefreshCw className="w-4 h-4" />
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {recentActivities.length > 0 ? (
                 recentActivities.map((activity, index) => {
                   const ActivityIcon = getActivityIcon(activity.type);
                   return (
                     <div key={index} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <ActivityIcon className="w-4 h-4 text-blue-600" />
                       </div>
-                      <div className="flex-1">
-                        <p className="text-gray-900 text-sm">{activity.text}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-900 text-sm truncate">{activity.text}</p>
                         <p className="text-gray-500 text-xs mt-1">{activity.time}</p>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-6 sm:py-8">
                   <Clock className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">No recent activities</p>
-                  <p className="text-sm text-gray-400">Start applying for jobs to see your activity here</p>
+                  <p className="text-gray-500 text-sm sm:text-base">No recent activities</p>
+                  <p className="text-xs sm:text-sm text-gray-400">Start applying for jobs to see your activity here</p>
                 </div>
               )}
             </div>
@@ -284,9 +284,9 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Profile Completion */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Your Profile</h3>
             <div className="space-y-3">
               <Link 

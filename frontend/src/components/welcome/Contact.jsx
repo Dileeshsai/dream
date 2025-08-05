@@ -113,9 +113,9 @@ const Contact = () => {
           </CardContent>
           <CardFooter className="flex flex-col gap-4 border-t pt-4 md:pt-6 p-4 md:p-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6 w-full">
-              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><Mail className="w-4 h-4 md:w-5 md:h-5" /> contact@unitynest.org</div>
-              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><Phone className="w-4 h-4 md:w-5 md:h-5" /> +91 98765 43210</div>
-              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><MapPin className="w-4 h-4 md:w-5 md:h-5" /> 123, Dream Society, India</div>
+              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><Mail className="w-4 h-4 md:w-5 md:h-5" />contact@dreamssociety.in</div>
+              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><Phone className="w-4 h-4 md:w-5 md:h-5" />+917093799225</div>
+              <div className="flex items-center gap-2 md:gap-3 text-sky-700 text-sm md:text-base"><MapPin className="w-4 h-4 md:w-5 md:h-5" />D No. 3-14, Venkatapuram, Penugonda, West Godavari District, A.P-534320.</div>
             </div>
           </CardFooter>
         </Card>
@@ -123,15 +123,30 @@ const Contact = () => {
 
       {/* Footer */}
       <footer className="w-full bg-gradient-to-r from-sky-200 via-blue-100 to-white px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
-          <div className="text-center md:text-left mb-4 md:mb-0">
-            <div className="text-base md:text-lg font-bold text-sky-800">UNITY Nest</div>
-            <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
-          </div>
-          <div className="flex gap-4 md:gap-6">
-            <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
-            <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
-            <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center py-6 md:py-8">
+            <div className="text-center md:text-left mb-4 md:mb-0">
+              <div className="text-base md:text-lg font-bold text-sky-800">UNITY </div>
+              <p className="text-xs md:text-sm text-sky-600">&copy; {new Date().getFullYear()} All Rights Reserved.</p>
+            </div>
+            
+            {/* Navigation Links */}
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-4 md:mb-0">
+              <div className="flex gap-4 md:gap-6">
+                <Link to="/policy" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                  Privacy Policy
+                </Link>
+                <Link to="/terms" className="text-sky-600 hover:text-sky-800 transition-colors text-sm md:text-base font-medium">
+                  Terms & Conditions
+                </Link>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 md:gap-6">
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Linkedin className="w-5 h-5 md:w-6 md:h-6" /></a>
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Twitter className="w-5 h-5 md:w-6 md:h-6" /></a>
+              <a href="#" className="text-sky-500 hover:text-sky-700 transition-colors"><Facebook className="w-5 h-5 md:w-6 md:h-6" /></a>
+            </div>
           </div>
         </div>
       </footer>
